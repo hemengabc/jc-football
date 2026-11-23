@@ -6,85 +6,122 @@
 <title>竞彩足球赛程及赛果</title>
 <style>
 :root{
-  --bg:#2b3242; --bar:#23a043; --card:#e3e8da; --card2:#d7dec9;
-  --ink:#1c2330; --sub:#6b7686; --red:#d93026; --blue:#1f6feb; --gray:#8a93a3;
-  --amber:#e8890c;
+  --bg:#f3f7f4; --bar:#198647; --card:#fff; --card2:#f5f8f5;
+  --ink:#18241d; --sub:#718078; --red:#d34a3c; --blue:#3274d9; --gray:#8a948e;
+  --amber:#d9820b; --line:#e2ebe5;
 }
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-body{font-family:"Noto Sans SC","PingFang SC","Microsoft YaHei",-apple-system,sans-serif;background:var(--bg);color:var(--ink);padding-bottom:40px}
-.top{background:linear-gradient(135deg,#1d7a38,#23a043);color:#fff;text-align:center;padding:15px 12px;position:sticky;top:0;z-index:20;box-shadow:0 2px 8px rgba(0,0,0,.25)}
-.top h1{font-size:17px;font-weight:700;letter-spacing:1px}
-.top p{font-size:11.5px;opacity:.85;margin-top:4px}
-.top .bar-row{margin-top:9px;display:flex;align-items:center;justify-content:center;gap:10px}
-#btnRefresh{background:#fff;color:var(--bar);border:0;border-radius:8px;padding:7px 16px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit}
-#btnRefresh:disabled{opacity:.6}
-#updStatus{font-size:11.5px;opacity:.9}
+body{font-family:"Noto Sans SC","PingFang SC","Microsoft YaHei",-apple-system,sans-serif;background:linear-gradient(180deg,#eaf3ed 0,var(--bg) 280px);color:var(--ink);min-height:100vh;padding-bottom:32px}
+.top{background:linear-gradient(135deg,#106b38,#22a456);color:#fff;text-align:center;padding:18px 16px 16px;position:sticky;top:0;z-index:20;box-shadow:0 5px 18px rgba(17,85,46,.2)}
+.top h1{font-size:20px;font-weight:700;letter-spacing:1.5px}
+.top p{font-size:11.5px;line-height:1.6;opacity:.86;margin-top:5px}
+.top .bar-row{margin-top:11px;display:flex;align-items:center;justify-content:center;gap:10px;flex-wrap:wrap}
+#btnRefresh{background:#fff;color:#14773e;border:0;border-radius:999px;padding:7px 17px;font-size:12.5px;font-weight:700;cursor:pointer;font-family:inherit;box-shadow:0 3px 10px rgba(0,0,0,.12);transition:transform .18s,box-shadow .18s}
+#btnRefresh:hover{box-shadow:0 4px 13px rgba(0,0,0,.17);transform:translateY(-1px)}
+#btnRefresh:disabled{opacity:.6;transform:none}
+#updStatus{font-size:11px;opacity:.9}
 /* 月份分组 */
-.day{margin-top:10px}
-.day-head{display:flex;align-items:center;gap:10px;padding:12px 14px;background:var(--bar);color:#fff;cursor:pointer}
-.day-head .d{font-size:15px;font-weight:700}
-.day-head .cnt{margin-left:auto;font-size:12px;opacity:.9}
-.day-head .arrow{font-size:12px;transition:transform .2s}
+#list{max-width:860px;margin:0 auto;padding:0 12px}
+.day{margin-top:14px}
+.day-head{display:flex;align-items:center;gap:10px;padding:11px 14px;background:#e4f1e8;color:#237446;border:1px solid #d5e7da;border-radius:12px;box-shadow:0 2px 8px rgba(33,78,48,.04);cursor:pointer}
+.day-head .d{font-size:14.5px;font-weight:700}
+.day-head .cnt{margin-left:auto;font-size:11px;padding:2px 8px;background:rgba(255,255,255,.7);border-radius:999px}
+.day-head .arrow{font-size:11px;transition:transform .2s}
 .day.collapsed .arrow{transform:rotate(-90deg)}
-.day-body{padding:0 8px}
+.day-body{padding:0 2px}
 /* 卡片 */
-.item{display:flex;margin:8px 0;background:var(--card);border-radius:10px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.18)}
-.lg{width:32px;flex:none;display:flex;align-items:center;justify-content:center}
-.lg span{writing-mode:vertical-rl;letter-spacing:3px;font-size:13px;font-weight:700;color:#fff}
-.main{flex:1;min-width:0;padding:9px 8px}
-.match-top{display:flex;align-items:center;gap:8px}
-.no{width:46px;flex:none;text-align:center}
-.no .wk{font-size:11px;color:var(--sub)}
-.no .num{font-size:19px;font-weight:800;color:var(--red);line-height:1.1}
-.no .tm{font-size:10px;color:var(--sub);line-height:1.35;margin-top:1px}
+.item{display:flex;margin:10px 0;background:var(--card);border:1px solid var(--line);border-radius:14px;overflow:hidden;box-shadow:0 5px 18px rgba(30,70,43,.07)}
+.lg{width:34px;flex:none;display:flex;align-items:center;justify-content:center;box-shadow:inset -1px 0 rgba(255,255,255,.25)}
+.lg span{writing-mode:vertical-rl;letter-spacing:3px;font-size:12px;font-weight:700;color:#fff}
+.main{flex:1;min-width:0;padding:12px 12px 11px}
+.match-top{display:flex;align-items:center;gap:10px}
+.no{width:48px;flex:none;text-align:center;padding:5px 2px;background:#f6f9f6;border:1px solid #e7eee8;border-radius:10px}
+.no .wk{font-size:10.5px;color:var(--sub)}
+.no .num{font-size:19.5px;font-weight:800;color:var(--red);line-height:1.15}
+.no .tm{font-size:10px;color:var(--sub);line-height:1.35;margin-top:2px}
 .teams{flex:1;min-width:0}
-.team-line{display:flex;align-items:baseline;justify-content:space-between;gap:6px;font-size:14.5px;font-weight:600}
+.team-line{display:flex;align-items:baseline;justify-content:space-between;gap:8px;font-size:15px;font-weight:600}
 .team-line .t{flex:1;min-width:0;display:flex;align-items:baseline;justify-content:flex-end}
 .team-line .t .nm{flex:0 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:right}
 .team-line .t.away .nm{text-align:left}
 /* 主/客标记 */
-.team-line .hc{font-style:normal;font-size:9px;font-weight:600;color:var(--sub);background:#ccd3b6;border-radius:3px;padding:0 2px;margin-right:4px;vertical-align:1px;flex:none}
-.team-line .t.away .hc{margin-right:0;margin-left:4px}
+.team-line .hc{font-style:normal;font-size:9px;font-weight:600;color:#68766d;background:#eef3ef;border:1px solid #dfe8e1;border-radius:4px;padding:1px 4px;margin-right:5px;vertical-align:1px;flex:none}
+.team-line .t.away .hc{margin-right:0;margin-left:5px}
 .team-line .t.away{justify-content:flex-start;text-align:right}
-.team-line .sc{flex:none;font-weight:800;font-size:16px;min-width:48px;text-align:center}
-.team-line .min{font-size:10px;font-weight:800;color:#d2402a;line-height:1.15;letter-spacing:0}
-/* 比分与其赔率竖排：赔率在比分正下方 */
-.team-line .sc-wrap{flex:none;min-width:48px;display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1.15}
+.team-line .sc{flex:none;font-weight:800;font-size:20px;min-width:58px;text-align:center;line-height:1.1;font-variant-numeric:tabular-nums}
+.team-line>.sc{padding:7px 8px;background:#e9f6ed;border:1px solid #d3ead9;border-radius:10px}
+.team-line .min{font-size:9px;font-weight:800;color:#d2402a;line-height:1.15;letter-spacing:0}
+/* 比分与比赛分钟竖排 */
+.team-line .sc-wrap{flex:none;min-width:58px;display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1.15;padding:4px 8px 6px;background:#e9f6ed;border:1px solid #d3ead9;border-radius:10px}
 .team-line .sc-wrap .sc{min-width:0;display:block}
 .team-line .sc-odds{font-size:10px;font-weight:600;color:var(--sub);margin-top:1px}
-.team-line .vs{flex:none;color:var(--sub);font-size:13px;font-weight:500}
-.meta{display:flex;align-items:center;gap:8px;margin-top:3px;font-size:11.5px;color:var(--sub);flex-wrap:wrap}
+.team-line .vs{flex:none;min-width:42px;color:#849189;background:#f0f4f1;border-radius:9px;padding:6px 0;font-size:12px;font-weight:700;text-align:center;letter-spacing:.5px}
+.meta{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:10px;margin-top:6px;padding:0 2px;font-size:11px;color:var(--sub)}
 .gl{color:var(--amber);font-weight:600}
-.half{color:var(--sub)}
+.half{grid-column:2;color:var(--sub);text-align:center}
 .crs-sp{color:var(--sub)}
-.status-tag{margin-left:auto;font-size:11px;padding:2px 8px;border-radius:6px}
-.st-2{color:var(--bar);background:#e8f5ee}
-.st-1{color:var(--amber);background:#fdf3e3}
-.st-live{color:#fff;background:#d2402a}
-.st-end{color:#5b6573;background:#eceee8}
-.st-0{color:var(--gray);background:#eef0f2}
-/* 结果四格 */
-.res{display:grid;grid-template-columns:repeat(5,1fr);gap:4px;margin-top:8px}
-.res .cell{background:var(--card2);border-radius:7px;padding:6px 1px 5px;text-align:center}
-.res .lab{font-size:9px;color:var(--sub);margin-bottom:3px;line-height:1.25;white-space:normal}
-.res.has-gl .lab{min-height:27px}
+.status-tag{grid-column:3;justify-self:end;margin-left:0;font-size:10.5px;font-weight:600;padding:3px 9px;border-radius:999px;letter-spacing:.2px}
+.st-2{color:#197342;background:#e6f4eb}
+.st-1{color:#ad6b09;background:#fff2dc}
+.st-live{color:#fff;background:#df5145;box-shadow:0 2px 7px rgba(223,81,69,.22)}
+.st-end{color:#647168;background:#edf1ee}
+.st-0{color:var(--gray);background:#eef1ef}
+/* 五列赛果 */
+.res{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:5px;margin-top:10px}
+.res .cell{min-width:0;min-height:76px;display:flex;flex-direction:column;align-items:center;justify-content:center;background:var(--card2);border:1px solid #e2ebe4;border-radius:9px;padding:7px 2px 6px;text-align:center}
+.res .lab{min-height:23px;display:flex;align-items:center;justify-content:center;flex-wrap:wrap;font-size:9.5px;color:var(--sub);margin-bottom:3px;line-height:1.25;white-space:normal}
+.res.has-gl .lab{min-height:28px}
 .res .lab .ln{white-space:nowrap}
-.res .val{font-size:16px;font-weight:800;line-height:1.2}
-.res .sp{font-size:10px;color:var(--sub);margin-top:3px}
+.res .val{font-size:16.5px;font-weight:800;line-height:1.2}
+.res .sp{min-height:12px;font-size:10px;color:var(--sub);margin-top:4px}
 .v-h{color:var(--red)}
-.v-d{color:#5b6573}
+.v-d{color:#5b6860}
 .v-a{color:var(--blue)}
-.v-na{color:#b3b9a8;font-weight:400}
+.v-na{color:#b4bdb6;font-weight:400}
 /* 比分颜色 */
-.v-sc{color:#15803d}
-.team-line .sc{color:#15803d}
+.v-sc{color:#147a3e}
+.team-line .sc{color:#147a3e}
 /* 让球数值：跟在“让球胜平负”标签后，小号橙色 */
-.res .glv{display:inline-block;font-size:9.5px;font-weight:800;color:#e8890c;margin-left:1px;vertical-align:1px}
+.res .glv{display:inline-block;font-size:9.5px;font-weight:800;color:var(--amber);margin-left:2px;vertical-align:1px}
 /* 总进球：橙色 */
-.v-tg{color:#e8890c}
+.v-tg{color:var(--amber)}
 /* 半全场胜平负：紫色 */
 .v-hf{color:#7b3fb8}
-.foot{padding:22px 16px;text-align:center;font-size:11px;color:#9aa3b5;line-height:1.7}
+.foot{max-width:860px;margin:0 auto;padding:22px 16px;text-align:center;font-size:10.5px;color:#87928a;line-height:1.7}
+@media(max-width:520px){
+  .top{padding:14px 10px 12px}
+  .top h1{font-size:17px}
+  .top p{font-size:10.5px;line-height:1.55}
+  .top .bar-row{margin-top:9px}
+  #list{padding:0 8px}
+  .day{margin-top:10px}
+  .day-head{padding:10px 12px;border-radius:11px}
+  .day-body{padding:0}
+  .item{margin:8px 0;border-radius:12px}
+  .lg{width:29px}
+  .lg span{font-size:11px;letter-spacing:2px}
+  .main{padding:10px 7px 9px}
+  .match-top{gap:6px}
+  .no{width:41px;padding:4px 1px;border-radius:8px}
+  .no .num{font-size:18px}
+  .team-line{gap:4px;font-size:13px}
+  .team-line .hc{font-size:8px;padding:1px 3px;margin-right:3px}
+  .team-line .t.away .hc{margin-left:3px}
+  .team-line .sc{font-size:18px;min-width:50px}
+  .team-line>.sc{padding:6px 5px}
+  .team-line .sc-wrap{min-width:50px;padding:4px 5px 5px}
+  .team-line .vs{min-width:32px;padding:5px 0;font-size:11px}
+  .meta{margin-top:5px;font-size:10px}
+  .status-tag{font-size:9.5px;padding:2px 7px}
+  .res{gap:3px;margin-top:8px}
+  .res .cell{min-height:69px;padding:6px 1px 5px;border-radius:7px}
+  .res .lab{min-height:22px;font-size:8.5px}
+  .res.has-gl .lab{min-height:26px}
+  .res .val{font-size:14.5px}
+  .res .sp{font-size:9px}
+  .res .glv{font-size:8.5px}
+  .foot{padding:18px 14px;font-size:10px}
+}
 </style>
 </head>
 <body>
