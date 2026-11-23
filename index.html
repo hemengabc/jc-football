@@ -129,7 +129,7 @@ body{font-family:"Noto Sans SC","PingFang SC","Microsoft YaHei",-apple-system,sa
   <h1>竞彩足球赛程及赛果</h1>
   <p><span id="header-date">2025-09-01 至 加载中…</span> ｜ 比分 · 胜平负 · 让球胜平负 · 总进球 · <span style="white-space:nowrap">半全场胜平负</span></p>
   <div class="bar-row">
-    <button id="btnRefresh">刷新最新赛果</button>
+    <button id="btnRefresh" title="每60秒自动刷新，也可点击立即刷新">自动刷新 · 60秒</button>
     <span id="updStatus">加载中…</span>
   </div>
 </div>
@@ -455,6 +455,7 @@ async function refresh(){
 renderAll();
 updateHeaderDate();
 refresh();
+setInterval(()=>{if(!document.getElementById('btnRefresh').disabled) refresh();},60000);
 document.getElementById('btnRefresh').onclick=refresh;
 </script>
 </body>
