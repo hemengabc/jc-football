@@ -3,14 +3,16 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>竞彩足球赛事大屏</title>
+<link rel="icon" href="data:,">
+<title>竞彩足篮赛事大屏</title>
 <style>
 :root{color-scheme:dark;--navy:#020b19;--panel:#06172b;--line:#245277;--text:#f4fbff;--muted:#8ca9bd;--lime:#d7ed91;--green:#20dd83;--red:#ff5d55;--amber:#ffc45c}
 *{box-sizing:border-box}
 html,body{margin:0;min-height:100%;background:var(--navy)}
-body{font-family:"Microsoft YaHei","PingFang SC",Arial,sans-serif;color:var(--text);overflow:hidden}
-.board{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));grid-template-rows:repeat(3,minmax(0,1fr));gap:2px;width:100vw;height:100vh;height:100svh;padding:2px;background:#153b5c}
+body{font-family:"Microsoft YaHei","PingFang SC",Arial,sans-serif;color:var(--text);overflow:auto}
+.board{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));grid-template-rows:repeat(3,minmax(0,1fr));gap:2px;width:100%;height:100vh;height:100svh;padding:2px;background:#153b5c}
 .match-card{position:relative;isolation:isolate;min-width:0;min-height:0;overflow:hidden;container-type:inline-size;background:radial-gradient(ellipse at 50% 35%,#0b4260 0,#082a48 38%,#051a32 68%,#020d20 100%)}
+.match-card.basketball{background:radial-gradient(ellipse at 50% 35%,#47352b 0,#172d42 42%,#051a32 72%,#020d20 100%)}
 .match-card::before{content:"";position:absolute;inset:0;z-index:-1;background:linear-gradient(115deg,transparent 20%,rgba(72,184,230,.08) 45%,transparent 65%),repeating-linear-gradient(90deg,transparent 0 12%,rgba(83,154,197,.025) 12% 12.2%);pointer-events:none}
 .match-card::after{content:"";position:absolute;inset:0;box-shadow:inset 0 0 32px rgba(0,0,0,.5);pointer-events:none;z-index:8}
 .visual{position:absolute;inset:0 0 27px}
@@ -23,6 +25,8 @@ body{font-family:"Microsoft YaHei","PingFang SC",Arial,sans-serif;color:var(--te
 .pitch{position:absolute;inset:0;overflow:visible;transform:rotateX(53deg) scale(1.06);transform-origin:50% 60%;border:2px solid rgba(180,255,220,.72);border-radius:2px;background:repeating-linear-gradient(90deg,#009b54 0 10%,#00ad5e 10% 20%);box-shadow:inset 0 0 30px rgba(0,255,155,.25),0 0 9px rgba(49,255,170,.5)}
 .pitch::before{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(130,255,200,.14),transparent 42%,rgba(0,35,20,.2));pointer-events:none}
 .pitch::after{content:"";position:absolute;inset:-5px;border:1px solid rgba(35,255,165,.18);box-shadow:0 0 16px rgba(35,255,165,.18)}
+.pitch.court{border-color:rgba(255,224,180,.78);background:repeating-linear-gradient(90deg,#9c512b 0 10%,#b36535 10% 20%);box-shadow:inset 0 0 30px rgba(255,185,100,.2),0 0 9px rgba(255,158,74,.45)}
+.court-wrap::before{background:radial-gradient(ellipse,rgba(255,148,62,.2),transparent 67%)}
 .line{position:absolute;display:block;border-color:rgba(222,255,236,.76);border-style:solid;z-index:2}
 .halfway{top:0;bottom:0;left:50%;border-width:0 0 0 1px}
 .center-circle{left:40%;top:50%;width:20%;aspect-ratio:1;border-width:1px;border-radius:50%;transform:translateY(-50%)}
@@ -33,6 +37,8 @@ body{font-family:"Microsoft YaHei","PingFang SC",Arial,sans-serif;color:var(--te
 .goal-right{right:0;top:38%;width:6.5%;height:24%;border-width:1px 0 1px 1px}
 .arc-left{left:14%;top:38%;width:10%;height:24%;border-width:1px 1px 1px 0;border-radius:0 50% 50% 0}
 .arc-right{right:14%;top:38%;width:10%;height:24%;border-width:1px 0 1px 1px;border-radius:50% 0 0 50%}
+.court-three-left{left:0;top:12%;width:25%;height:76%;border-width:1px 1px 1px 0;border-radius:0 50% 50% 0}
+.court-three-right{right:0;top:12%;width:25%;height:76%;border-width:1px 0 1px 1px;border-radius:50% 0 0 50%}
 .score-panel{position:absolute;z-index:4;right:1.3%;bottom:0;left:1.3%;display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);align-items:center;gap:1.5cqi;padding:4.5% 2.2% 2.5%;border:1px solid rgba(65,133,174,.4);border-bottom:0;background:linear-gradient(180deg,rgba(8,39,64,.88),rgba(2,13,29,.98) 55%);box-shadow:0 -8px 24px rgba(0,0,0,.3)}
 .team{display:flex;align-items:center;gap:1.1cqi;min-width:0;color:#f2f8fb;font-size:clamp(10px,2.25cqi,21px);font-weight:600}
 .team.home{justify-content:flex-end;text-align:right}
@@ -58,8 +64,11 @@ body{font-family:"Microsoft YaHei","PingFang SC",Arial,sans-serif;color:var(--te
 .card-symbol{display:inline-block;width:8px;height:12px;border:1px solid rgba(255,255,255,.35);border-radius:1px;box-shadow:0 1px 3px rgba(0,0,0,.4)}
 .card-symbol.yellow{background:#ffd23f}.card-symbol.red{background:#ef4b47}
 .match-date{margin-left:auto;color:#698ca2;font-family:Arial,sans-serif}
+.watch-link{position:relative;z-index:10;display:inline-flex;flex:none;align-items:center;justify-content:center;padding:3px 8px;border:1px solid rgba(32,221,131,.55);border-radius:3px;background:rgba(18,131,83,.22);color:#b8f7d8;font-size:clamp(8px,1.25cqi,11px);font-weight:700;line-height:1.2;text-decoration:none;cursor:pointer}
+.watch-link:hover{background:rgba(32,221,131,.3);color:#fff}.watch-link:focus-visible{outline:2px solid var(--lime);outline-offset:1px}
 .is-live{box-shadow:inset 0 0 0 1px rgba(255,87,76,.25)}
 .is-live .pitch{box-shadow:inset 0 0 30px rgba(0,255,155,.3),0 0 13px rgba(49,255,170,.65)}
+.is-live .pitch.court{box-shadow:inset 0 0 30px rgba(255,185,100,.25),0 0 13px rgba(255,158,74,.6)}
 .message{grid-column:1/-1;grid-row:1/-1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;background:radial-gradient(ellipse at center,#0a304c,#020b19 70%);color:#a9c2d2;font-size:15px;text-align:center}
 .message strong{color:#e6f2f7;font-size:20px}
 .message button{padding:9px 20px;border:1px solid #387799;border-radius:4px;background:#103a55;color:#e9f7ff;font:inherit;cursor:pointer}
@@ -104,6 +113,23 @@ body.modal-open{overflow:hidden!important}
 .player-table{width:100%;border-collapse:collapse;font-size:12px;white-space:nowrap}.player-table th,.player-table td{padding:9px 10px;border-top:1px solid #edf0f2;text-align:center}
 .player-table th{background:#f5f7f8;color:#6e777f;font-weight:500}.player-table td:nth-child(2){min-width:140px;text-align:left;white-space:normal}
 .player-table td:nth-child(2) small{display:block;margin-top:2px;color:#939ba2}.player-table .starter{color:#27985a}
+.video-section{width:min(960px,calc(100% - 24px));margin:14px auto 10px;overflow:hidden;border:1px solid #245277;border-radius:6px;background:#06172b;box-shadow:0 12px 36px rgba(0,0,0,.32)}
+.video-header{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:8px 12px;border-bottom:1px solid #1b4263;background:#071c32}
+.video-header a{color:#a9c8d9;font-size:12px;text-decoration:none}.video-header a:hover{color:var(--lime)}.video-header a:focus-visible{outline:2px solid var(--lime);outline-offset:3px}
+.sport-tabs{display:flex;gap:5px}
+.sport-tab{padding:7px 16px;border:1px solid #2b5c7d;border-radius:4px;background:#0a2944;color:#9db9cb;font:inherit;font-size:13px;font-weight:600;cursor:pointer}
+.sport-tab.active{border-color:#91bc69;background:#294827;color:#e4f5b9}.sport-tab:focus-visible{outline:2px solid var(--lime);outline-offset:2px}
+.pip-guide{display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:14px;padding:13px 14px}
+.pip-badge{padding:7px 10px;border:1px solid rgba(32,221,131,.4);border-radius:4px;background:rgba(32,221,131,.1);color:#aef0cf;font-size:12px;font-weight:700;white-space:nowrap}
+.video-title{margin:0 0 4px;font-size:15px;font-weight:600;letter-spacing:.5px}
+.pip-copy{margin:0;color:#91aabc;font-size:12px;line-height:1.6}
+.pip-steps{color:#c4d6e0;font-size:12px;line-height:1.7;white-space:nowrap}
+.detail-watch{display:inline-flex;margin:14px auto 0;padding:8px 15px;font-size:13px}
+.detail-watch-wrap{text-align:center}.no-watch{margin:14px 0 0;color:#7b858c;font-size:12px;text-align:center}
+.basket-summary{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;padding:20px 24px}
+.basket-metric{padding:14px 8px;border:1px solid #e1e5e8;border-radius:5px;background:#fff;text-align:center;color:#7b858c;font-size:12px}
+.basket-metric strong{display:block;margin-top:6px;color:#25303a;font-size:18px}
+.basket-guide{margin:0 24px 24px;padding:14px 16px;border-radius:5px;background:#eaf2f5;color:#526673;font-size:13px;line-height:1.8}
 @media(max-width:640px){
   .event-modal{padding:0}.event-dialog{width:100%;height:100svh;max-height:none;border-radius:0}
   .detail-head{padding:0 14px 14px}.detail-teams{gap:10px}.detail-team{font-size:16px}.detail-score{font-size:32px}
@@ -111,6 +137,9 @@ body.modal-open{overflow:hidden!important}
   .event-chip{padding:8px;font-size:12px}.event-minute{width:40px;height:40px;font-size:12px}
   .season-summary{gap:8px;padding:10px;font-size:11px}.season-phase{font-size:11px}
   .player-details{padding:0 10px 24px}.player-panel h3{font-size:13px}.player-table th,.player-table td{padding:8px}
+  .pip-guide{grid-template-columns:1fr;gap:8px}.pip-badge{justify-self:start}.pip-steps{white-space:normal}
+  .basket-summary{grid-template-columns:repeat(2,minmax(0,1fr));padding:14px}.basket-guide{margin:0 14px 18px}
+  .watch-link{padding:3px 5px}.match-date{display:none}
 }
 @media(max-width:720px) and (orientation:portrait){
   body{overflow:auto}
@@ -124,69 +153,132 @@ body.modal-open{overflow:hidden!important}
 </style>
 </head>
 <body>
+<section class="video-section" aria-labelledby="videoTitle">
+  <header class="video-header">
+    <div class="sport-tabs" role="tablist" aria-label="赛事类型">
+      <button id="footballTab" class="sport-tab active" type="button" role="tab" aria-selected="true" data-sport="football">竞彩足球</button>
+      <button id="basketballTab" class="sport-tab" type="button" role="tab" aria-selected="false" data-sport="basketball">竞彩篮球</button>
+    </div>
+    <a href="https://www.jrs16.com/" target="_blank" rel="noopener noreferrer">JRS16 直播首页</a>
+  </header>
+  <div class="pip-guide">
+    <span class="pip-badge">浏览器画中画</span>
+    <div>
+      <h1 id="videoTitle" class="video-title">选择赛事观看直播</h1>
+      <p id="liveGuide" class="pip-copy">点击比赛卡片中的“画中画观看”。仅显示已与竞彩唯一匹配的直播入口，源直播标签页请勿关闭。</p>
+    </div>
+    <div class="pip-steps">① 新标签打开直播<br>② 点播放器的“画中画”<br>③ 切回本赛事大屏</div>
+  </div>
+</section>
 <main id="board" class="board" aria-label="竞彩足球实时赛事大屏" aria-busy="true">
   <div class="message"><span class="loader" aria-hidden="true"></span><strong>正在加载赛事数据</strong><span>正在连接中国竞彩网官方接口…</span></div>
 </main>
 <div id="notice" class="notice" role="status" aria-live="polite"></div>
 <div id="eventModal" class="event-modal" hidden>
   <section class="event-dialog" role="dialog" aria-modal="true" aria-labelledby="eventTitle">
-    <button id="closeEvents" class="dialog-close" type="button" aria-label="关闭比赛事件">×</button>
+    <button id="closeEvents" class="dialog-close" type="button" aria-label="关闭比赛详情">×</button>
     <div id="eventContent"></div>
   </section>
 </div>
 <script>
-const LIST_API="https://webapi.sporttery.cn/gateway/uniform/football/getUniformMatchResultV1.qry";
-const TIME_API="https://webapi.sporttery.cn/gateway/jc/football/getMatchCalculatorV1.qry?poolCode=hhad&channel=c";
-const LIVE_API="https://webapi.sporttery.cn/gateway/uniform/fb/getMatchLiveV1.qry?method=live";
-const EVENT_API="https://webapi.sporttery.cn/gateway/uniform/fb/getMatchEventV1.qry?matchId=";
-const HEAD_API="https://webapi.sporttery.cn/gateway/uniform/football/getMatchHeadV1.qry?source=web&sportteryMatchId=";
-const PLAYER_API="https://webapi.sporttery.cn/gateway/uniform/football/matchlive/getPlayerStatisV1.qry?gmMatchId=";
+const SPORTS={
+  football:{
+    label:'竞彩足球',pageSize:100,
+    listApi:'https://webapi.sporttery.cn/gateway/uniform/football/getUniformMatchResultV1.qry',
+    timeApi:'https://webapi.sporttery.cn/gateway/jc/football/getMatchCalculatorV1.qry?poolCode=hhad&channel=c',
+    liveApi:'https://webapi.sporttery.cn/gateway/uniform/fb/getMatchLiveV1.qry?method=live'
+  },
+  basketball:{
+    label:'竞彩篮球',pageSize:30,
+    listApi:'https://webapi.sporttery.cn/gateway/uniform/basketball/getUniformMatchResultV2.qry',
+    timeApi:'https://webapi.sporttery.cn/gateway/uniform/basketball/getMatchCalculatorV1.qry?channel=c&poolCode=hdc',
+    liveApi:'https://webapi.sporttery.cn/gateway/uniform/bk/getMatchLiveV1.qry?matchIds=&eventTc=goals,penalty_shootout&method=live'
+  }
+};
+const EVENT_API='https://webapi.sporttery.cn/gateway/uniform/fb/getMatchEventV1.qry?matchId=';
+const HEAD_API='https://webapi.sporttery.cn/gateway/uniform/football/getMatchHeadV1.qry?source=web&sportteryMatchId=';
+const PLAYER_API='https://webapi.sporttery.cn/gateway/uniform/football/matchlive/getPlayerStatisV1.qry?gmMatchId=';
 const HTTP_HEAD={};
 const board=document.getElementById('board');
 const notice=document.getElementById('notice');
 const eventModal=document.getElementById('eventModal');
 const eventContent=document.getElementById('eventContent');
-let matches=[];
-let refreshing=false;
+const videoTitle=document.getElementById('videoTitle');
+const liveGuide=document.getElementById('liveGuide');
+const matchesBySport={football:[],basketball:[]};
+const refreshingBySport={football:false,basketball:false};
+let currentSport='football';
+let matches=matchesBySport.football;
+let liveSources=[];
+let liveMapLoading=false;
 let activeMatchId=null;
 let lastTrigger=null;
 
 function esc(v){return String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
 function fmtDate(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
-function parseScore(score){const m=String(score||'').match(/^(\d+)\s*[:：]\s*(\d+)$/);return m?[Number(m[1]),Number(m[2])]:null;}
+function parseScore(score){const m=String(score||'').match(/^(\d+)\s*[:：-]\s*(\d+)$/);return m?[Number(m[1]),Number(m[2])]:null;}
 function dayDiff(a,b){return Math.abs((new Date(a+'T00:00:00+08:00')-new Date(b+'T00:00:00+08:00'))/864e5);}
 function kickTimestamp(m){const d=m.playDate||m.date;if(!d||!m.time)return 0;return new Date(d+'T'+m.time+':00+08:00').getTime();}
-function matchKey(date,num){return date+'|'+num;}
+function matchKey(date,num,sport){return sport+'|'+date+'|'+num;}
+function safePlayUrl(value){try{const url=new URL(value);return ['http:','https:'].includes(url.protocol)?url.href:'';}catch(e){return '';}}
+function normalizeTeam(name){return String(name||'').toLowerCase().replace(/[\s·•._\-—–()（）\[\]【】]/g,'').replace(/足球俱乐部|篮球俱乐部|俱乐部|足球队|篮球队/g,'').replace(/(fc|cf)$/,'').replace(/队$/,'');}
+const aliasSource={
+  '马德里竞技':'马竞','马德里体育会':'马竞','国米':'国际米兰',
+  '弗洛西诺':'弗罗西诺内','弗洛西诺尼':'弗罗西诺内','弗罗西诺':'弗罗西诺内',
+  '利勒斯特罗姆':'利勒斯特','萨普斯堡08':'萨普斯堡',
+  '云达不莱梅':'不来梅','云达不来梅':'不来梅','文达不莱梅':'不来梅',
+  '洛杉矶湖人':'湖人','洛杉矶湖人女篮':'湖人女篮','洛杉矶快船':'快船',
+  '亚特兰大老鹰':'老鹰','波士顿凯尔特人':'凯尔特人','布鲁克林篮网':'篮网',
+  '夏洛特黄蜂':'黄蜂','芝加哥公牛':'公牛','克利夫兰骑士':'骑士',
+  '达拉斯独行侠':'独行侠','丹佛掘金':'掘金','底特律活塞':'活塞',
+  '金州勇士':'勇士','休斯顿火箭':'火箭','印第安纳步行者':'步行者',
+  '孟菲斯灰熊':'灰熊','迈阿密热火':'热火','密尔沃基雄鹿':'雄鹿',
+  '明尼苏达森林狼':'森林狼','新奥尔良鹈鹕':'鹈鹕','纽约尼克斯':'尼克斯',
+  '俄克拉荷马城雷霆':'雷霆','俄克拉荷马雷霆':'雷霆','奥兰多魔术':'魔术',
+  '费城76人':'76人','菲尼克斯太阳':'太阳','波特兰开拓者':'开拓者',
+  '萨克拉门托国王':'国王','圣安东尼奥马刺':'马刺','多伦多猛龙':'猛龙',
+  '犹他爵士':'爵士','华盛顿奇才':'奇才'
+};
+const TEAM_ALIASES=Object.fromEntries(Object.entries(aliasSource).map(([key,value])=>[normalizeTeam(key),normalizeTeam(value)]));
+function canonicalTeam(name){const normalized=normalizeTeam(name);return TEAM_ALIASES[normalized]||normalized;}
 
-async function fetchLive(){
+async function fetchJson(url){
+  const r=await fetch(url,{headers:HTTP_HEAD});
+  if(!r.ok)throw new Error('request '+r.status);
+  const j=await r.json();
+  if(j.success===false||String(j.errorCode??'0')!=='0')throw new Error('api '+(j.errorCode||'error'));
+  return j;
+}
+
+async function fetchLive(sport){
   try{
-    const r=await fetch(LIVE_API,{headers:HTTP_HEAD});
-    if(!r.ok)throw new Error('live '+r.status);
-    const j=await r.json();
-    return (j.value||[]).map(m=>({
-      t:(m.matchTime||'').slice(0,5),st:String(m.matchStatus||''),minute:m.matchMinute||'',matchId:m.matchId||'',
-      full:m.sectionsNo999||'',half:m.sectionsNo1||'',d:m.matchDate,
-      home:m.homeTeamAbbName||'',away:m.awayTeamAbbName||'',
-      key:(m.homeTeamAbbName||'')+'|'+(m.awayTeamAbbName||'')
-    }));
+    const j=await fetchJson(SPORTS[sport].liveApi);
+    const list=Array.isArray(j.value)?j.value:((j.value||{}).matchInfoList||(j.value||{}).matchList||[]);
+    return list.map(m=>{
+      const rawTime=String(m.matchTime||'');
+      return {
+        t:(rawTime.match(/\d{2}:\d{2}/)||[''])[0],st:String(m.matchStatus||''),minute:m.matchMinute||m.matchStatusName||'',matchId:m.matchId||'',
+        full:(sport==='basketball'?m.finalScore||m.sectionsNo999:m.sectionsNo999)||'',half:m.sectionsNo1||'',d:m.matchDate||m.businessDate,
+        home:m.homeTeamAbbName||m.homeTeam||'',away:m.awayTeamAbbName||m.awayTeam||''
+      };
+    }).map(m=>Object.assign(m,{key:m.home+'|'+m.away}));
   }catch(e){return[];}
 }
 
-async function fetchFixtures(){
+async function fetchFixtures(sport){
   const result=[];
   try{
-    const r=await fetch(TIME_API,{headers:HTTP_HEAD});
-    if(!r.ok)throw new Error('fixtures '+r.status);
-    const j=await r.json();
+    const j=await fetchJson(SPORTS[sport].timeApi);
     ((j.value||{}).matchInfoList||[]).forEach(d=>{
       (d.subMatchList||[]).forEach(m=>{
         const time=(m.matchTime||'').slice(0,5);
         if(!time)return;
         const playDate=m.matchDate||d.businessDate;
+        const pool=m.hhad||m.hdc||{};
         result.push({
-          id:matchKey(d.businessDate,m.matchNumStr),date:d.businessDate,num:m.matchNumStr,
+          sport,id:matchKey(d.businessDate,m.matchNumStr,sport),date:d.businessDate,num:m.matchNumStr,
           league:m.leagueAbbName||'',home:m.homeTeamAbbName||'',away:m.awayTeamAbbName||'',
-          handicap:(m.hhad||{}).goalLine||'',time,playDate,full:'--',half:'--',minute:'',matchId:m.matchId||'',cards:null,
+          handicap:pool.goalLine||'',time,playDate,full:'--',half:'--',minute:'',matchId:m.matchId||'',cards:null,
           status:Date.now()>new Date(playDate+'T'+time+':00+08:00').getTime()?'L':'1'
         });
       });
@@ -195,15 +287,15 @@ async function fetchFixtures(){
   return result;
 }
 
-async function fetchRecent(){
+async function fetchRecent(sport){
+  const config=SPORTS[sport];
   const today=new Date();
   const from=new Date(Date.now()-10*864e5);
   let all=[],page=1;
   while(true){
-    const url=`${LIST_API}?matchBeginDate=${fmtDate(from)}&matchEndDate=${fmtDate(today)}&leagueId=&pageSize=100&pageNo=${page}&isFix=0&matchPage=1&pcOrWap=1`;
-    const r=await fetch(url,{headers:HTTP_HEAD});
-    if(!r.ok)throw new Error('results '+r.status);
-    const j=await r.json();
+    const extra=sport==='football'?'&matchPage=1&pcOrWap=1':'';
+    const url=`${config.listApi}?matchBeginDate=${fmtDate(from)}&matchEndDate=${fmtDate(today)}&leagueId=&pageSize=${config.pageSize}&pageNo=${page}&isFix=0${extra}`;
+    const j=await fetchJson(url);
     const v=j.value||{},list=v.matchResult||[];
     all=all.concat(list);
     if(page>=(v.pages||1)||!list.length)break;
@@ -213,12 +305,11 @@ async function fetchRecent(){
 }
 
 async function loadCards(match){
+  if(match.sport!=='football')return;
   match.events=[];
   if(!match.matchId||match.status==='1'){match.cards=null;return;}
   try{
-    const r=await fetch(EVENT_API+encodeURIComponent(match.matchId),{headers:HTTP_HEAD});
-    if(!r.ok)throw new Error('events '+r.status);
-    const j=await r.json();
+    const j=await fetchJson(EVENT_API+encodeURIComponent(match.matchId));
     const events=(j.value||{}).eventList||[];
     match.events=events;
     if(!events.length){match.cards=null;return;}
@@ -253,12 +344,12 @@ function applyLive(match,lv){
 }
 
 function resultRow(rec,base,lv){
-  const m=Object.assign({},base);
+  const m=Object.assign({},base),isBasket=base.sport==='basketball';
   m.matchId=rec.matchId||base.matchId||(lv&&lv.matchId)||'';
-  m.full=rec.sectionsNo999||(lv&&lv.full)||'--';
+  m.full=(isBasket?rec.finalScore||rec.sectionsNo999:rec.sectionsNo999)||(lv&&lv.full)||'--';
   m.half=rec.sectionsNo1||(lv&&lv.half)||'--';
   m.time=(lv&&lv.t)||base.time||'';
-  m.status=rec.matchResultStatus;
+  m.status=String((isBasket?rec.status??rec.matchResultStatus:rec.matchResultStatus??rec.status)??'');
   if(m.status==='1'&&m.time&&Date.now()>kickTimestamp(m))m.status='L';
   return applyLive(m,lv);
 }
@@ -279,7 +370,7 @@ function statusInfo(m){
   if(m.status==='0'||m.full==='取消'||m.full==='无效场次')return{cls:'',text:'取消/无效'};
   if(m.status==='L'){
     let minute=String(m.minute||'');
-    if(minute&&!minute.includes("'"))minute+="'";
+    if(m.sport==='football'&&minute&&!minute.includes("'"))minute+="'";
     return{cls:'live',text:'直播中 '+(minute||''),dot:true};
   }
   if(m.status==='E')return{cls:'finished',text:'已结束'};
@@ -288,13 +379,9 @@ function statusInfo(m){
   return{cls:'',text:'未开赛'};
 }
 
-function pitchMarkup(){
-  return '<div class="pitch-wrap" aria-hidden="true"><div class="pitch">'+
-    '<i class="line halfway"></i><i class="line center-circle"></i><i class="line center-dot"></i>'+
-    '<i class="line penalty-left"></i><i class="line penalty-right"></i>'+
-    '<i class="line goal-left"></i><i class="line goal-right"></i>'+
-    '<i class="line arc-left"></i><i class="line arc-right"></i>'+
-  '</div></div>';
+function pitchMarkup(sport){
+  if(sport==='basketball')return '<div class="pitch-wrap court-wrap" aria-hidden="true"><div class="pitch court"><i class="line halfway"></i><i class="line center-circle"></i><i class="line center-dot"></i><i class="line penalty-left"></i><i class="line penalty-right"></i><i class="line court-three-left"></i><i class="line court-three-right"></i></div></div>';
+  return '<div class="pitch-wrap" aria-hidden="true"><div class="pitch"><i class="line halfway"></i><i class="line center-circle"></i><i class="line center-dot"></i><i class="line penalty-left"></i><i class="line penalty-right"></i><i class="line goal-left"></i><i class="line goal-right"></i><i class="line arc-left"></i><i class="line arc-right"></i></div></div>';
 }
 
 function scoreMarkup(m){
@@ -307,54 +394,67 @@ function scoreMarkup(m){
 function resultInfo(m){
   const score=parseScore(m.full);
   if(!score)return{label:'待定',icon:'—',cls:'',goals:'--'};
-  const [h,a]=score;
-  return h>a?{label:'主胜',icon:'胜',cls:'win',goals:String(h+a)}:h===a?{label:'平局',icon:'平',cls:'draw',goals:String(h+a)}:{label:'客胜',icon:'负',cls:'lose',goals:String(h+a)};
+  const total=String(score[0]+score[1]);
+  if(m.sport==='basketball'){
+    const [away,home]=score;
+    return home>away?{label:'主胜',icon:'胜',cls:'win',goals:total}:home===away?{label:'平局',icon:'平',cls:'draw',goals:total}:{label:'客胜',icon:'负',cls:'lose',goals:total};
+  }
+  const [home,away]=score;
+  return home>away?{label:'主胜',icon:'胜',cls:'win',goals:total}:home===away?{label:'平局',icon:'平',cls:'draw',goals:total}:{label:'客胜',icon:'负',cls:'lose',goals:total};
+}
+
+function findWatchSource(match){
+  const home=canonicalTeam(match.home),away=canonicalTeam(match.away),time=kickTimestamp(match);
+  if(!home||!away)return null;
+  const candidates=liveSources.filter(source=>{
+    if(source.sport!==match.sport||canonicalTeam(source.home)!==home||canonicalTeam(source.away)!==away)return false;
+    const sourceTime=Date.parse(source.startTime||'');
+    if(time&&Number.isFinite(sourceTime))return Math.abs(sourceTime-time)<=45*60e3;
+    return source.date===(match.playDate||match.date);
+  });
+  const unique=Array.from(new Map(candidates.map(source=>[source.playUrl,source])).values());
+  return unique.length===1?unique[0]:null;
+}
+
+function watchMarkup(match,detail=false){
+  const source=findWatchSource(match);
+  if(!source)return '';
+  return `<a class="watch-link ${detail?'detail-watch':''}" href="${esc(source.playUrl)}" target="_blank" rel="noopener noreferrer" data-watch-id="${esc(match.id)}" title="新标签打开 JRS16，再点击播放器画中画">${detail?'打开直播并使用画中画':'画中画观看'}</a>`;
 }
 
 function matchCard(m){
-  const state=statusInfo(m),result=resultInfo(m);
+  const state=statusInfo(m),result=resultInfo(m),isBasket=m.sport==='basketball';
   const yellowCards=m.cards?`主${m.cards.homeYellow}·客${m.cards.awayYellow}`:'主--·客--';
   const redCards=m.cards?`主${m.cards.homeRed}·客${m.cards.awayRed}`:'主--·客--';
   const half=parseScore(m.half)?m.half:'--';
   const caption=parseScore(m.full)?(m.status==='L'?'实时比分':'全场比分'):(m.status==='0'?'赛事状态':'等待开赛');
   const weekday=String(m.num||'').slice(0,2);
   const time=m.time||'--:--';
-  const label=`${m.league}，${m.home} 对 ${m.away}，${parseScore(m.full)?m.full:'未开赛'}，${state.text}`;
-  return `<article class="match-card ${m.status==='L'?'is-live':''}" data-match="${esc(m.id)}" tabindex="0" role="button" title="点击查看比赛事件" aria-label="${esc(label)}，查看比赛事件">
+  const left=isBasket?m.away:m.home,right=isBasket?m.home:m.away;
+  const label=`${m.league}，${left} 对 ${right}，${parseScore(m.full)?m.full:'未开赛'}，${state.text}`;
+  const metrics=isBasket
+    ?`<span class="metric"><i class="metric-icon ${result.cls}">${result.icon}</i><span class="metric-value">${result.label}</span></span><span class="metric">总分 <span class="metric-value">${result.goals}</span></span><span class="metric">让分 <span class="metric-value">${esc(m.handicap||'--')}</span></span><span class="metric">阶段 <span class="metric-value">${esc(half)}</span></span>`
+    :`<span class="metric"><i class="metric-icon ${result.cls}">${result.icon}</i><span class="metric-value">${result.label}</span></span><span class="metric">总进球 <span class="metric-value">${result.goals}</span></span><span class="metric">半场 <span class="metric-value">${esc(half)}</span></span><span class="metric card-metric" title="黄牌（主队 / 客队）"><i class="card-symbol yellow"></i><span class="metric-value">${yellowCards}</span></span><span class="metric card-metric" title="红牌（主队 / 客队）"><i class="card-symbol red"></i><span class="metric-value">${redCards}</span></span>`;
+  return `<article class="match-card ${isBasket?'basketball':''} ${m.status==='L'?'is-live':''}" data-match="${esc(m.id)}" tabindex="0" role="button" title="点击查看比赛详情" aria-label="${esc(label)}，查看比赛详情">
     <div class="visual">
       <div class="match-no">-${esc(displayNumber(m.num))}-</div>
-      <div class="league" style="--league-color:${leagueColor(m.league)}">${esc(m.league||'竞彩足球')}</div>
+      <div class="league" style="--league-color:${leagueColor(m.league)}">${esc(m.league||SPORTS[m.sport].label)}</div>
       <div class="kickoff">${esc((m.playDate||m.date||'').slice(5))} ${esc(time)}</div>
-      ${pitchMarkup()}
+      ${pitchMarkup(m.sport)}
       <div class="score-panel">
-        <div class="team home"><span class="team-name">${esc(m.home)}</span><span class="team-badge" aria-hidden="true">${esc(Array.from(m.home||'主')[0])}</span></div>
-        <div class="score-center">
-          <div class="state ${state.cls}">${state.dot?'<i class="live-dot"></i>':''}${esc(state.text)}</div>
-          ${scoreMarkup(m)}
-          <div class="score-caption">${caption}</div>
-        </div>
-        <div class="team away"><span class="team-badge" aria-hidden="true">${esc(Array.from(m.away||'客')[0])}</span><span class="team-name">${esc(m.away)}</span></div>
+        <div class="team home"><span class="team-name">${esc(left)}</span><span class="team-badge" aria-hidden="true">${esc(Array.from(left||'客')[0])}</span></div>
+        <div class="score-center"><div class="state ${state.cls}">${state.dot?'<i class="live-dot"></i>':''}${esc(state.text)}</div>${scoreMarkup(m)}<div class="score-caption">${caption}</div></div>
+        <div class="team away"><span class="team-badge" aria-hidden="true">${esc(Array.from(right||'主')[0])}</span><span class="team-name">${esc(right)}</span></div>
       </div>
     </div>
-    <div class="data-strip">
-      <span class="metric"><i class="metric-icon ${result.cls}">${result.icon}</i><span class="metric-value">${result.label}</span></span>
-      <span class="metric">总进球 <span class="metric-value">${result.goals}</span></span>
-      <span class="metric">半场 <span class="metric-value">${esc(half)}</span></span>
-      <span class="metric card-metric" title="黄牌（主队 / 客队）" aria-label="黄牌 ${yellowCards}"><i class="card-symbol yellow" aria-hidden="true"></i><span class="metric-value">${yellowCards}</span></span>
-      <span class="metric card-metric" title="红牌（主队 / 客队）" aria-label="红牌 ${redCards}"><i class="card-symbol red" aria-hidden="true"></i><span class="metric-value">${redCards}</span></span>
-      <span class="match-date">${esc(weekday)} ${esc(m.num?String(m.num).slice(2):'')}</span>
-    </div>
+    <div class="data-strip">${metrics}${watchMarkup(m)}<span class="match-date">${esc(weekday)} ${esc(m.num?String(m.num).slice(2):'')}</span></div>
   </article>`;
 }
 
-async function fetchValue(url){
-  const r=await fetch(url,{headers:HTTP_HEAD});
-  if(!r.ok)throw new Error('detail '+r.status);
-  return (await r.json()).value||null;
-}
+async function fetchValue(url){return (await fetchJson(url)).value||null;}
 
 async function loadMatchDetails(match){
-  if(!match||!match.matchId||match.detailsLoading||match.detailsLoaded)return;
+  if(!match||match.sport!=='football'||!match.matchId||match.detailsLoading||match.detailsLoaded)return;
   match.detailsLoading=true;
   if(activeMatchId===match.id&&!eventModal.hidden)renderEventDetail();
   const [head,players]=await Promise.allSettled([
@@ -369,14 +469,7 @@ async function loadMatchDetails(match){
 }
 
 function eventMeta(e){
-  const icons={
-    YC:'<i class="event-icon yellow" aria-hidden="true"></i>',
-    RC:'<i class="event-icon red" aria-hidden="true"></i>',
-    G:'<i class="event-icon goal" aria-hidden="true">◎</i>',
-    OG:'<i class="event-icon own" aria-hidden="true">◎</i>',
-    SI:'<i class="event-icon sub-in" aria-hidden="true">↑</i>',
-    SO:'<i class="event-icon sub-out" aria-hidden="true">↓</i>'
-  };
+  const icons={YC:'<i class="event-icon yellow"></i>',RC:'<i class="event-icon red"></i>',G:'<i class="event-icon goal">◎</i>',OG:'<i class="event-icon own">◎</i>',SI:'<i class="event-icon sub-in">↑</i>',SO:'<i class="event-icon sub-out">↓</i>'};
   const names={YC:'黄牌',RC:'红牌',G:'进球',OG:'乌龙球',SI:'换上',SO:'换下'};
   const code=e.eventCode==='OG'||e.eventTc==='own_goals'?'OG':e.eventCode;
   return icons[code]?{icon:icons[code],name:names[code]}:null;
@@ -390,9 +483,7 @@ function eventRow(e){
   const number=e.uniformNo||e.uniformno||'';
   const player=e.personEnName||e.personName||e.personenname||'球员';
   const playerText=(number?number+'-':'')+player;
-  const chip=side==='home'
-    ?`<span class="event-player">${esc(playerText)}</span>${meta.icon}`
-    :`${meta.icon}<span class="event-player">${esc(playerText)}</span>`;
+  const chip=side==='home'?`<span class="event-player">${esc(playerText)}</span>${meta.icon}`:`${meta.icon}<span class="event-player">${esc(playerText)}</span>`;
   return `<div class="event-row ${side}" title="${meta.name} ${esc(minute)}"><div class="event-chip">${chip}</div><div class="event-minute">${esc(minute)}</div></div>`;
 }
 
@@ -401,7 +492,7 @@ function seasonTeam(stats,side){
   const value=v=>v===undefined||v===null||v===''?'--':v;
   const prefix=side==='home'?'sHome':'sAway';
   const venue=side==='home'?'主场':'客场';
-  return `<div class="season-team ${side}"><strong>${esc(value(stats.phaseName))} 第${esc(value(stats.ranking))}名</strong><br>总 ${esc(value(stats.sWinGoalMatchCnt))}胜${esc(value(stats.sDrawMatchCnt))}平${esc(value(stats.sLossGoalMatchCnt))}负<br>${venue} ${esc(value(stats[prefix+'WinGoalMatchCnt']))}胜${esc(value(stats[prefix+'DrawMatchCnt']))}平${esc(value(stats[prefix+'LossGoalMatchCnt']))}负</div>`;
+  return `<div class="season-team ${side}"><strong>${esc(value(stats.phaseName))} 第${esc(value(stats.ranking))}名</strong><br>总 ${esc(value(stats.sWinGoalMatchCnt))}胜${esc(value(stats.sDrawMatchCnt))}平${esc(value(stats.sLossGoalMatchCnt))}负<br>${venue} ${esc(value(stats[prefix+'WinGoalMatchCnt']))}胜${esc(value(stats[prefix+'DrawGoalMatchCnt']))}平${esc(value(stats[prefix+'LossGoalMatchCnt']))}负</div>`;
 }
 
 function seasonMarkup(head){
@@ -426,9 +517,16 @@ function playersMarkup(match){
   return `<section class="player-details"><h2>球员本场分析</h2>${playerTable(match.home,p.homeTeamFormation,p.homePlayerStats)}${playerTable(match.away,p.awayTeamFormation,p.awayPlayerStats)}</section>`;
 }
 
+function basketballDetail(m){
+  const state=statusInfo(m),result=resultInfo(m),score=parseScore(m.full)?m.full:'VS';
+  const source=findWatchSource(m);
+  eventContent.innerHTML=`<div class="detail-head"><div class="detail-teams"><div class="detail-team home">${esc(m.away)}</div><div class="detail-score">${esc(score)}</div><div class="detail-team away">${esc(m.home)}</div></div><div id="eventTitle" class="detail-state">${esc(m.league)} · ${esc(m.num)} · ${esc(state.text)} · 客队 vs 主队</div><div class="detail-watch-wrap">${source?watchMarkup(m,true):'<p class="no-watch">暂未匹配到对应的 JRS16 直播入口</p>'}</div></div><div class="basket-summary"><div class="basket-metric">比赛结果<strong>${esc(result.label)}</strong></div><div class="basket-metric">总分<strong>${esc(result.goals)}</strong></div><div class="basket-metric">让分<strong>${esc(m.handicap||'--')}</strong></div><div class="basket-metric">阶段比分<strong>${esc(parseScore(m.half)?m.half:'--')}</strong></div></div><div class="basket-guide">观看方法：打开直播新标签后，在播放器控制栏点击“画中画”，再切回本大屏。悬浮播放期间请保留源直播标签页。</div>`;
+}
+
 function renderEventDetail(){
   const m=matches.find(item=>item.id===activeMatchId);
   if(!m){closeEventModal();return;}
+  if(m.sport==='basketball'){basketballDetail(m);return;}
   const state=statusInfo(m);
   const score=parseScore(m.full)?m.full:'VS';
   const events=(m.events||[]).filter(e=>eventMeta(e)).slice().sort((a,b)=>{
@@ -436,27 +534,8 @@ function renderEventDetail(){
     return minuteDiff||(parseInt(a.matchMinuteExtra,10)||0)-(parseInt(b.matchMinuteExtra,10)||0);
   });
   const timeline=events.length?events.map(eventRow).join(''):'<div class="no-events">暂无已记录的比赛事件</div>';
-  const season=seasonMarkup(m.headInfo);
-  const playerDetails=playersMarkup(m);
-  eventContent.innerHTML=`<div class="detail-head">
-    <div class="detail-teams">
-      <div class="detail-team home">${esc(m.home)}</div>
-      <div class="detail-score">${esc(score)}</div>
-      <div class="detail-team away">${esc(m.away)}</div>
-    </div>
-    <div id="eventTitle" class="detail-state">${esc(m.league)} · ${esc(m.num)} · ${esc(state.text)}</div>
-    ${season}
-    <div class="legend" aria-label="事件图例">
-      <span class="legend-item"><i class="event-icon yellow"></i>黄牌</span>
-      <span class="legend-item"><i class="event-icon red"></i>红牌</span>
-      <span class="legend-item"><i class="event-icon goal">◎</i>进球</span>
-      <span class="legend-item"><i class="event-icon own">◎</i>乌龙球</span>
-      <span class="legend-item"><i class="event-icon sub-in">↑</i>换上</span>
-      <span class="legend-item"><i class="event-icon sub-out">↓</i>换下</span>
-    </div>
-  </div>
-  <div class="timeline" aria-label="比赛事件时间轴">${timeline}</div>
-  ${playerDetails}`;
+  const source=findWatchSource(m);
+  eventContent.innerHTML=`<div class="detail-head"><div class="detail-teams"><div class="detail-team home">${esc(m.home)}</div><div class="detail-score">${esc(score)}</div><div class="detail-team away">${esc(m.away)}</div></div><div id="eventTitle" class="detail-state">${esc(m.league)} · ${esc(m.num)} · ${esc(state.text)}</div><div class="detail-watch-wrap">${source?watchMarkup(m,true):'<p class="no-watch">暂未匹配到对应的 JRS16 直播入口</p>'}</div>${seasonMarkup(m.headInfo)}<div class="legend" aria-label="事件图例"><span class="legend-item"><i class="event-icon yellow"></i>黄牌</span><span class="legend-item"><i class="event-icon red"></i>红牌</span><span class="legend-item"><i class="event-icon goal">◎</i>进球</span><span class="legend-item"><i class="event-icon own">◎</i>乌龙球</span><span class="legend-item"><i class="event-icon sub-in">↑</i>换上</span><span class="legend-item"><i class="event-icon sub-out">↓</i>换下</span></div></div><div class="timeline" aria-label="比赛事件时间轴">${timeline}</div>${playersMarkup(m)}`;
 }
 
 function openEventModal(id,trigger){
@@ -479,7 +558,7 @@ function closeEventModal(){
 function selectMatches(list){
   const now=Date.now();
   return list.slice().sort((a,b)=>{
-    const rank=m=>m.status==='L'?0:m.status==='E'?1:m.status==='0'?3:2;
+    const rank=m=>m.status==='L'?0:(m.status==='E'||m.status==='2')?1:m.status==='0'?3:2;
     const diff=rank(a)-rank(b);
     if(diff)return diff;
     const at=kickTimestamp(a),bt=kickTimestamp(b);
@@ -489,8 +568,13 @@ function selectMatches(list){
 
 function render(){
   const visible=selectMatches(matches);
-  board.innerHTML=visible.map(matchCard).join('');
+  board.innerHTML=visible.length?visible.map(matchCard).join(''):'<div class="message"><strong>暂无赛事数据</strong><span>系统会在下次刷新时重试。</span></div>';
   board.setAttribute('aria-busy','false');
+}
+
+function renderLoading(){
+  board.innerHTML=`<div class="message"><span class="loader"></span><strong>正在加载${SPORTS[currentSport].label}数据</strong><span>正在连接中国竞彩网官方接口…</span></div>`;
+  board.setAttribute('aria-busy','true');
 }
 
 function renderError(){
@@ -499,67 +583,114 @@ function renderError(){
   board.setAttribute('aria-busy','false');
 }
 
-function showNotice(text){
-  notice.textContent=text;
-  notice.classList.add('show');
+function showNotice(text){notice.textContent=text;notice.classList.add('show');}
+
+async function loadLiveMap(){
+  if(liveMapLoading)return;
+  liveMapLoading=true;
+  try{
+    const r=await fetch('live-map.json?ts='+Date.now(),{cache:'no-store'});
+    if(!r.ok)throw new Error('live map '+r.status);
+    const data=await r.json();
+    if(!Array.isArray(data.matches))throw new Error('invalid live map');
+    liveSources=data.matches.filter(item=>['football','basketball'].includes(item.sport)&&safePlayUrl(item.playUrl)&&item.home&&item.away).map(item=>Object.assign({},item,{playUrl:safePlayUrl(item.playUrl)}));
+    if(matches.length)render();
+    if(activeMatchId&&!eventModal.hidden)renderEventDetail();
+  }catch(e){}
+  finally{liveMapLoading=false;}
 }
 
 async function refresh(){
-  if(refreshing)return;
-  refreshing=true;
-  if(!matches.length)board.setAttribute('aria-busy','true');
+  const sport=currentSport;
+  if(refreshingBySport[sport])return;
+  refreshingBySport[sport]=true;
+  if(sport===currentSport&&!matches.length)board.setAttribute('aria-busy','true');
   try{
-    const [online,liveList,fixtures]=await Promise.all([fetchRecent(),fetchLive(),fetchFixtures()]);
+    const [online,liveList,fixtures]=await Promise.all([fetchRecent(sport),fetchLive(sport),fetchFixtures(sport)]);
     const map=new Map();
     fixtures.forEach(m=>map.set(m.id,m));
     online.forEach(rec=>{
-      const id=matchKey(rec.matchDate,rec.matchNumStr);
+      const id=matchKey(rec.matchDate,rec.matchNumStr,sport);
       const base=map.get(id)||{
-        id,date:rec.matchDate,num:rec.matchNumStr,league:rec.leagueNameAbbr||'',
-        home:rec.homeTeam||'',away:rec.awayTeam||'',handicap:rec.goalLine||'',
+        sport,id,date:rec.matchDate,num:rec.matchNumStr,league:rec.leagueNameAbbr||rec.leagueAbbName||'',
+        home:rec.homeTeam||rec.homeTeamAbbName||'',away:rec.awayTeam||rec.awayTeamAbbName||'',handicap:rec.goalLine||'',
         time:'',playDate:rec.matchDate,full:'--',half:'--',minute:'',status:rec.matchResultStatus,
         matchId:rec.matchId||'',cards:null
       };
       map.set(id,resultRow(rec,base,findLive(base,liveList)));
     });
     map.forEach((m,id)=>map.set(id,applyLive(m,findLive(m,liveList))));
-    matches=Array.from(map.values());
-    if(!matches.length)throw new Error('empty data');
+    const list=Array.from(map.values());
+    if(!list.length)throw new Error('empty data');
+    matchesBySport[sport]=list;
+    if(sport!==currentSport)return;
+    matches=list;
     render();
     await Promise.all(selectMatches(matches).map(loadCards));
+    if(sport!==currentSport)return;
     render();
-    if(!eventModal.hidden){
-      renderEventDetail();
-      loadMatchDetails(matches.find(item=>item.id===activeMatchId));
-    }
+    if(!eventModal.hidden){renderEventDetail();loadMatchDetails(matches.find(item=>item.id===activeMatchId));}
     notice.classList.remove('show');
   }catch(e){
+    if(sport!==currentSport)return;
     if(!matches.length)renderError();
-    showNotice('数据更新失败，将保留当前赛事并在60秒后自动重试');
+    showNotice(SPORTS[sport].label+'数据更新失败，将保留当前赛事并在60秒后自动重试');
   }finally{
-    refreshing=false;
-    board.setAttribute('aria-busy','false');
+    refreshingBySport[sport]=false;
+    if(sport===currentSport)board.setAttribute('aria-busy','false');
   }
 }
 
+function selectWatch(id){
+  const match=matches.find(item=>item.id===id);
+  if(!match)return;
+  videoTitle.textContent=match.sport==='basketball'?match.away+' vs '+match.home:match.home+' vs '+match.away;
+  liveGuide.textContent='直播已请求在新标签打开。请在播放器中点击“画中画”，再切回本大屏；悬浮播放期间不要关闭源直播标签。';
+}
+
+function setSport(sport){
+  if(!SPORTS[sport])return;
+  if(!eventModal.hidden)closeEventModal();
+  currentSport=sport;
+  matches=matchesBySport[sport];
+  document.querySelectorAll('.sport-tab').forEach(tab=>{
+    const active=tab.dataset.sport===sport;
+    tab.classList.toggle('active',active);
+    tab.setAttribute('aria-selected',String(active));
+  });
+  board.setAttribute('aria-label',SPORTS[sport].label+'实时赛事大屏');
+  document.title=SPORTS[sport].label+'赛事大屏';
+  videoTitle.textContent='选择赛事观看直播';
+  liveGuide.textContent='点击比赛卡片中的“画中画观看”。仅显示已与竞彩唯一匹配的直播入口，源直播标签页请勿关闭。';
+  if(matches.length)render();else renderLoading();
+  refresh();
+}
+
 board.addEventListener('click',e=>{
+  const watch=e.target.closest('.watch-link');
+  if(watch){selectWatch(watch.dataset.watchId);return;}
   const card=e.target.closest('.match-card');
   if(card)openEventModal(card.dataset.match,card);
 });
 board.addEventListener('keydown',e=>{
+  if(e.target.closest('.watch-link'))return;
   const card=e.target.closest('.match-card');
-  if(card&&(e.key==='Enter'||e.key===' ')){
-    e.preventDefault();
-    openEventModal(card.dataset.match,card);
-  }
+  if(card&&(e.key==='Enter'||e.key===' ')){e.preventDefault();openEventModal(card.dataset.match,card);}
 });
-eventModal.addEventListener('click',e=>{if(e.target===eventModal)closeEventModal();});
+document.querySelectorAll('.sport-tab').forEach(tab=>tab.addEventListener('click',()=>setSport(tab.dataset.sport)));
+eventModal.addEventListener('click',e=>{
+  const watch=e.target.closest('.watch-link');
+  if(watch){selectWatch(watch.dataset.watchId);return;}
+  if(e.target===eventModal)closeEventModal();
+});
 document.getElementById('closeEvents').addEventListener('click',closeEventModal);
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!eventModal.hidden)closeEventModal();});
 
 refresh();
+loadLiveMap();
 setInterval(refresh,60000);
-document.addEventListener('visibilitychange',()=>{if(!document.hidden)refresh();});
+setInterval(loadLiveMap,60000);
+document.addEventListener('visibilitychange',()=>{if(!document.hidden){refresh();loadLiveMap();}});
 </script>
 </body>
 </html>
