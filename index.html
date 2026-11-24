@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
-<title>竞彩足球赛程及赛果</title>
+<title>竞彩足球篮球赛程及赛果</title>
 <style>
 :root{
   --bg:#f3f7f4; --bar:#198647; --card:#fff; --card2:#f5f8f5;
@@ -87,6 +87,11 @@ body{font-family:"Noto Sans SC","PingFang SC","Microsoft YaHei",-apple-system,sa
 .v-tg{color:var(--amber)}
 /* 半全场胜平负：紫色 */
 .v-hf{color:#7b3fb8}
+.sport-switch{display:inline-flex;margin-top:11px;padding:3px;background:rgba(0,0,0,.14);border:1px solid rgba(255,255,255,.2);border-radius:999px}
+.sport-tab{border:0;border-radius:999px;padding:6px 22px;background:transparent;color:rgba(255,255,255,.82);font:700 12.5px inherit;cursor:pointer}
+.sport-tab.active{background:#fff;color:#14773e;box-shadow:0 2px 8px rgba(0,0,0,.12)}
+.basket-res .val{font-size:14px;overflow-wrap:anywhere}
+.empty{margin:24px 0;padding:36px 16px;text-align:center;color:var(--sub);background:#fff;border:1px solid var(--line);border-radius:14px}
 .foot{max-width:860px;margin:0 auto;padding:22px 16px;text-align:center;font-size:10.5px;color:#87928a;line-height:1.7}
 @media(max-width:520px){
   .top{padding:14px 10px 12px}
@@ -120,21 +125,27 @@ body{font-family:"Noto Sans SC","PingFang SC","Microsoft YaHei",-apple-system,sa
   .res .val{font-size:14.5px}
   .res .sp{font-size:9px}
   .res .glv{font-size:8.5px}
+  .sport-tab{padding:5px 20px;font-size:12px}
+  .basket-res .val{font-size:11.5px}
   .foot{padding:18px 14px;font-size:10px}
 }
 </style>
 </head>
 <body>
 <div class="top">
-  <h1>竞彩足球赛程及赛果</h1>
-  <p><span id="header-date">2025-09-01 至 加载中…</span> ｜ 比分 · 胜平负 · 让球胜平负 · 总进球 · <span style="white-space:nowrap">半全场胜平负</span></p>
+  <h1 id="pageTitle">竞彩足球赛程及赛果</h1>
+  <p><span id="header-date">2025-09-01 至 加载中…</span> ｜ <span id="headerMarkets">比分 · 胜平负 · 让球胜平负 · 总进球 · 半全场胜平负</span></p>
+  <div class="sport-switch" role="tablist" aria-label="赛事类型">
+    <button id="tabFootball" class="sport-tab active" role="tab" aria-selected="true">竞彩足球</button>
+    <button id="tabBasketball" class="sport-tab" role="tab" aria-selected="false">竞彩篮球</button>
+  </div>
   <div class="bar-row">
     <button id="btnRefresh" title="每60秒自动刷新，也可点击立即刷新">自动刷新 · 60秒</button>
     <span id="updStatus">加载中…</span>
   </div>
 </div>
 <div id="list"></div>
-<div class="foot">各玩法结果与赔率以中国竞彩网官方公布为准；"-" 表示该玩法官方未开售或暂未开奖。<br>打开页面会自动拉取近期官方最新赛果；数据仅供个人学习查看，不构成任何购彩建议。</div>
+<div class="foot"><span id="footNote">各玩法结果与赔率以中国竞彩网官方公布为准；"-" 表示该玩法官方未开售或暂未开奖。</span><br>打开页面会自动拉取近期官方最新赛果；数据仅供个人学习查看，不构成任何购彩建议。</div>
 
 <script>
 // 快照字段: 0日期 1场次 2联赛 3主队 4客队 5让球 6半场 7全场 8胜平负 9让球 10总进球 11半全场 12状态
@@ -144,6 +155,9 @@ const LIST_API = "https://webapi.sporttery.cn/gateway/uniform/football/getUnifor
 const DETAIL_API = "https://webapi.sporttery.cn/gateway/uniform/football/getFixedBonusV1.qry";
 const TIME_API = "https://webapi.sporttery.cn/gateway/jc/football/getMatchCalculatorV1.qry?poolCode=hhad&channel=c";
 const LIVE_API = "https://webapi.sporttery.cn/gateway/uniform/fb/getMatchLiveV1.qry?method=live";
+const BK_LIST_API = "https://webapi.sporttery.cn/gateway/uniform/basketball/getUniformMatchResultV2.qry";
+const BK_TIME_API = "https://webapi.sporttery.cn/gateway/uniform/basketball/getMatchCalculatorV1.qry?channel=c";
+const BK_LIVE_API = "https://webapi.sporttery.cn/gateway/uniform/bk/getMatchLiveV1.qry?matchIds=&eventTc=goals,penalty_shootout&method=live";
 const HTTP_HEAD = {};   // 自定义头会触发 CORS 预检，官方接口只允许简单请求
 
 const LG_COLORS = {
@@ -232,6 +246,9 @@ function deriveRow(rec, snap, tmap, lv){
 }
 
 let rows=SNAPSHOT.slice();
+let basketRows=[];
+let currentSport='football';
+const refreshing={football:false,basketball:false};
 const listEl=document.getElementById('list');
 
 function sortRows(a){a.sort((x,y)=> x[0]===y[0]?(x[1]<y[1]?1:-1):(x[0]<y[0]?1:-1));}
@@ -283,17 +300,26 @@ function matchCard(m){
 }
 
 function renderAll(){
-  sortRows(rows);
+  const sport=currentSport, data=sport==='football'?rows:basketRows;
+  if(sport==='football') sortRows(data);
+  else data.sort((a,b)=>a.date===b.date?String(a.num).localeCompare(String(b.num),'zh-CN'):(a.date<b.date?1:-1));
   const groups=[], idx={};
-  rows.forEach(m=>{const k=m[0].slice(0,7); if(!idx[k]){idx[k]=[];groups.push(k);} idx[k].push(m);});
+  data.forEach(m=>{
+    const date=sport==='football'?m[0]:m.date, k=String(date||'').slice(0,7);
+    if(!idx[k]){idx[k]=[];groups.push(k);} idx[k].push(m);
+  });
   listEl.innerHTML='';
-  const OPEN_DEFAULT=1;
+  if(!groups.length){
+    listEl.innerHTML='<div class="empty">暂无篮球数据，正在加载或请点击上方刷新重试</div>';
+    return;
+  }
+  const card=sport==='football'?matchCard:basketballCard, OPEN_DEFAULT=1;
   groups.forEach((k,gi)=>{
     const day=document.createElement('div');
     day.className='day'+(gi<OPEN_DEFAULT?'':' collapsed');
     const body=document.createElement('div'); body.className='day-body';
     let rendered=false;
-    const render=()=>{ if(!rendered){ body.innerHTML=idx[k].map(matchCard).join(''); rendered=true; } };
+    const render=()=>{ if(!rendered){ body.innerHTML=idx[k].map(card).join(''); rendered=true; } };
     if(gi<OPEN_DEFAULT) render(); else body.style.display='none';
     const label=`${k.split('-')[0]}年${Number(k.split('-')[1])}月`;
     day.innerHTML=`<div class="day-head"><span class="d">${label}</span><span class="cnt">${idx[k].length} 场</span><span class="arrow">▼</span></div>`;
@@ -382,15 +408,289 @@ async function fillDetailSp(list){
   await Promise.all([worker(),worker(),worker()]);
 }
 
-function updateHeaderDate(){
-  const el=document.getElementById('header-date');
-  if(el) el.textContent='2025-09-01 至 '+fmtDate(new Date());
+// 篮球比分为“客队-主队”，让分以主队为基准。
+function parseBasketScore(s){
+  if(!s||s==='取消'||s==='无效场次'||s==='--') return null;
+  const parts=String(s).trim().split(/[-:：]/);
+  if(parts.length!==2) return null;
+  const away=Number(parts[0]), home=Number(parts[1]);
+  if(!Number.isFinite(away)||!Number.isFinite(home)||away<0||home<0) return null;
+  return [away,home];
 }
 
-async function refresh(){
+function basketPool(pool,type,score,settled){
+  const p=pool||{};
+  const out={result:p.combinationDesc||'--',odds:p.winOdds||'',line:p.goalLine||'',note:p.resultStatus||'',single:p.single==1,quote:false};
+  if(out.note){ out.result='--'; out.odds=''; return out; }
+  if(out.result!=='--'||!score||!settled) return out;
+  const [away,home]=score, diff=home-away;
+  if(type==='mnl') out.result=diff>0?'主胜':diff<0?'主负':'--';
+  if(type==='hdc'&&out.line!==''){
+    const adjusted=home+Number(out.line);
+    if(Number.isFinite(adjusted)) out.result=adjusted>away?'让分主胜':adjusted<away?'让分主负':'--';
+  }
+  if(type==='hilo'&&out.line!==''){
+    const line=Number(out.line);
+    if(Number.isFinite(line)) out.result=home+away>line?'大':home+away<line?'小':'--';
+  }
+  if(type==='wnm'&&diff!==0){
+    const n=Math.abs(diff), band=n<=5?'1-5':n<=10?'6-10':n<=15?'11-15':n<=20?'16-20':n<=25?'21-25':'26+';
+    out.result=(diff>0?'主胜':'客胜')+band;
+  }
+  return out;
+}
+
+function basketFixturePool(pool,type,poolStatus){
+  const p=pool||{}, hasPool=Object.keys(p).length>0;
+  const out={result:'--',odds:'',line:p.goalLine||'',note:'',single:false,quote:true};
+  const status=String(poolStatus||'');
+  if(!hasPool||(status&&status!=='Selling')){
+    out.note=status==='Closed'?'已停售':'未开售';
+    return out;
+  }
+  if(type==='mnl'||type==='hdc'){
+    if(p.h||p.a){ out.result='主 '+(p.h||'--'); out.odds='客 '+(p.a||'--'); }
+  }else if(type==='hilo'){
+    if(p.h||p.l){ out.result='大 '+(p.h||'--'); out.odds='小 '+(p.l||'--'); }
+  }else if(type==='wnm'&&(p.w1||p.l1)){
+    out.result='主1-5 '+(p.w1||'--'); out.odds='客1-5 '+(p.l1||'--');
+  }
+  if(out.result==='--') out.note='未开售';
+  return out;
+}
+
+async function fetchBasketLive(){
+  try{
+    const r=await fetch(BK_LIVE_API,{headers:HTTP_HEAD});
+    if(!r.ok) throw new Error('request '+r.status);
+    const j=await r.json();
+    const list=Array.isArray(j.value)?j.value:((j.value||{}).matchInfoList||(j.value||{}).matchList||[]);
+    return list.map(m=>{
+      const time=String(m.matchTime||'');
+      return {
+        t:(time.match(/\d{2}:\d{2}/)||[''])[0],st:String(m.matchStatus||''),
+        minute:m.matchMinute||m.matchStatusName||'',matchId:m.matchId||'',
+        full:m.finalScore||m.sectionsNo999||'',half:m.sectionsNo1||'',
+        d:m.matchDate||m.businessDate||'',home:m.homeTeamAbbName||m.homeTeam||'',
+        away:m.awayTeamAbbName||m.awayTeam||''
+      };
+    });
+  }catch(e){ return []; }
+}
+
+async function fetchBasketFixtures(){
+  const result=[];
+  try{
+    const r=await fetch(BK_TIME_API,{headers:HTTP_HEAD});
+    if(!r.ok) throw new Error('request '+r.status);
+    const j=await r.json();
+    ((j.value||{}).matchInfoList||[]).forEach(d=>{
+      (d.subMatchList||[]).forEach(m=>{
+        const time=(String(m.matchTime||'').match(/\d{2}:\d{2}/)||[''])[0];
+        if(!time) return;
+        const playDate=m.matchDate||d.businessDate;
+        const poolStatus=code=>{
+          const item=(m.poolList||[]).find(p=>String(p.poolCode||'').toUpperCase()===code);
+          return item?item.poolStatus:'';
+        };
+        const sale=m.matchStatus||m.poolStatus||'';
+        result.push({
+          date:d.businessDate||m.businessDate||playDate,num:m.matchNumStr,
+          league:m.leagueAbbName||'',home:m.homeTeamAbbName||'',away:m.awayTeamAbbName||'',
+          playDate,time,minute:'',matchId:m.matchId||'',full:'--',half:'--',
+          status:Date.now()>new Date(playDate+'T'+time+':00+08:00').getTime()?'L':'1',
+          saleStatus:sale,fromResult:false,
+          mnl:basketFixturePool(m.mnl,'mnl',poolStatus('MNL')||sale),
+          hdc:basketFixturePool(m.hdc,'hdc',poolStatus('HDC')||sale),
+          hilo:basketFixturePool(m.hilo,'hilo',poolStatus('HILO')||sale),
+          wnm:basketFixturePool(m.wnm,'wnm',poolStatus('WNM')||sale)
+        });
+      });
+    });
+  }catch(e){}
+  return result;
+}
+
+async function fetchBasketRecent(){
+  const today=new Date(), from=new Date(Date.now()-10*864e5);
+  let all=[], page=1;
+  while(true){
+    const url=`${BK_LIST_API}?matchBeginDate=${fmtDate(from)}&matchEndDate=${fmtDate(today)}&leagueId=&pageSize=30&pageNo=${page}&isFix=0`;
+    const r=await fetch(url,{headers:HTTP_HEAD});
+    if(!r.ok) throw new Error('request '+r.status);
+    const j=await r.json(), v=j.value||{}, list=v.matchResult||[];
+    all=all.concat(list);
+    if(page>=(v.pages||1)||!list.length) break;
+    page++;
+  }
+  return all;
+}
+
+function findBasketLive(m,liveList){
+  if(m.matchId){
+    const byId=liveList.find(v=>String(v.matchId)===String(m.matchId));
+    if(byId) return byId;
+  }
+  const key=(m.home||'')+'|'+(m.away||''), base=m.playDate||m.date;
+  return liveList.find(v=>{
+    if(v.home+'|'+v.away!==key||!v.d||!base) return false;
+    const diff=(new Date(v.d+'T00:00:00+08:00')-new Date(base+'T00:00:00+08:00'))/864e5;
+    return Math.abs(diff)<=1;
+  })||null;
+}
+
+function applyBasketLive(m,lv){
+  if(!lv) return m;
+  if((!m.full||m.full==='--')&&lv.full) m.full=lv.full;
+  if((!m.half||m.half==='--')&&lv.half) m.half=lv.half;
+  if(lv.t) m.time=lv.t;
+  if(!m.matchId&&lv.matchId) m.matchId=lv.matchId;
+  if(!['0','2','3'].includes(String(m.status))){
+    if(lv.st==='5') m.status='L';
+    else if(lv.st==='6') m.status='E';
+    else if(lv.st==='4') m.status='1';
+  }
+  m.minute=(m.status==='L'||m.status==='E')?(lv.minute||''):'';
+  return m;
+}
+
+function basketResultRow(rec,base,lv){
+  const m=Object.assign({},base||{});
+  m.date=rec.matchDate||m.date||'';
+  m.num=rec.matchNumStr||m.num||'';
+  m.league=rec.leagueNameAbbr||rec.leagueAbbName||m.league||'';
+  m.home=rec.homeTeam||rec.homeTeamAbbName||m.home||'';
+  m.away=rec.awayTeam||rec.awayTeamAbbName||m.away||'';
+  m.playDate=rec.matchDate||m.playDate||m.date;
+  m.matchId=rec.matchId||m.matchId||(lv&&lv.matchId)||'';
+  m.full=rec.finalScore||rec.sectionsNo999||(lv&&lv.full)||m.full||'--';
+  m.half=rec.sectionsNo1||(lv&&lv.half)||m.half||'--';
+  m.time=(lv&&lv.t)||m.time||'';
+  m.status=String((rec.status??rec.matchResultStatus??m.status)??'');
+  if(m.status==='1'&&!parseBasketScore(m.full)&&m.time&&Date.now()>new Date(m.playDate+'T'+m.time+':00+08:00').getTime()) m.status='L';
+  const score=parseBasketScore(m.full), settled=m.status==='2'||m.status==='3';
+  ['mnl','hdc','hilo','wnm'].forEach(type=>{
+    const previous=(base&&base[type])||{}, raw=Object.assign({},rec[type]||{});
+    if(!raw.goalLine&&previous.line) raw.goalLine=previous.line;
+    if(!rec[type]&&previous.note) raw.resultStatus=previous.note;
+    m[type]=basketPool(raw,type,score,settled);
+  });
+  m.fromResult=true;
+  return applyBasketLive(m,lv);
+}
+
+function basketStatusHtml(m){
+  const st=String(m.status??'');
+  if(st==='0'||m.full==='取消'||m.full==='无效场次') return '<span class="status-tag st-0">取消/无效</span>';
+  if(st==='L') return '<span class="status-tag st-live">直播中</span>';
+  if(st==='E') return '<span class="status-tag st-end">直播结束</span>';
+  if(st==='3') return '<span class="status-tag st-0">暂停兑奖</span>';
+  if(st==='1'){
+    const kick=m.playDate&&m.time?new Date(m.playDate+'T'+m.time+':00+08:00').getTime():0;
+    if(kick&&Date.now()<kick){
+      const text=m.saleStatus&&m.saleStatus!=='Selling'?'未开售':'未开赛';
+      return '<span class="status-tag st-1">'+text+'</span>';
+    }
+    return '<span class="status-tag st-1">待开奖</span>';
+  }
+  return '<span class="status-tag st-2">已完成</span>';
+}
+
+function basketValCls(v){
+  if(v==='大') return 'v-tg';
+  if(v==='小'||v.includes('客胜')||v.includes('主负')) return 'v-a';
+  if(v.includes('主胜')) return 'v-h';
+  return '';
+}
+
+function basketCell(label,p){
+  const blank=!p.result||p.result==='--';
+  let sub=p.note||'';
+  if(!sub&&p.odds) sub=p.quote?p.odds:'固定 '+p.odds+(p.single?' · 单关':'');
+  return `<div class="cell"><div class="lab">${label}</div><div class="val ${blank?'v-na':p.quote?'':basketValCls(p.result)}">${blank?'-':esc(p.result)}</div><div class="sp">${esc(sub)}</div></div>`;
+}
+
+function basketballCard(m){
+  const num=String(m.num||''), wk=num.slice(0,2), code=num.slice(2);
+  const score=parseBasketScore(m.full), hasScore=score&&m.status!=='0';
+  const scoreHtml=hasScore
+    ?(m.minute?'<span class="sc-wrap"><span class="min">'+esc(m.minute)+'</span><span class="sc">'+esc(m.full)+'</span></span>':'<span class="sc">'+esc(m.full)+'</span>')
+    :'<span class="vs">VS</span>';
+  const half=parseBasketScore(m.half)?m.half:'--';
+  const lineTag=p=>p.line?`<span class="glv">（${esc(p.line)}）</span>`:'';
+  const total=hasScore?`总分 ${score[0]+score[1]}`:'';
+  return `<div class="item">
+    <div class="lg" style="background:${lgColor(m.league)}"><span>${esc(m.league)}</span></div>
+    <div class="main">
+      <div class="match-top">
+        <div class="no"><div class="wk">${esc(wk)}</div><div class="num">${esc(code)}</div>${m.time?`<div class="tm">${esc(m.time)}</div>`:''}</div>
+        <div class="teams">
+          <div class="team-line"><span class="t"><i class="hc">客</i><span class="nm">${esc(m.away)}</span></span>${scoreHtml}<span class="t away"><span class="nm">${esc(m.home)}</span><i class="hc">主</i></span></div>
+          <div class="meta"><span class="half">阶段 ${esc(half)}</span>${basketStatusHtml(m)}</div>
+        </div>
+      </div>
+      <div class="res basket-res${m.hdc.line||m.hilo.line?' has-gl':''}">
+        <div class="cell"><div class="lab">${m.status==='L'?'实时比分':'终场比分'}</div><div class="val ${hasScore?'v-sc':'v-na'}">${hasScore?esc(m.full):'-'}</div><div class="sp">${total}</div></div>
+        ${basketCell('胜负',m.mnl)}
+        ${basketCell('<span class="ln">让分胜负</span>'+lineTag(m.hdc),m.hdc)}
+        ${basketCell('<span class="ln">大小分</span>'+lineTag(m.hilo),m.hilo)}
+        ${basketCell('胜分差',m.wnm)}
+      </div>
+    </div>
+  </div>`;
+}
+
+async function refreshBasketball(){
+  if(refreshing.basketball) return;
+  refreshing.basketball=true;
   const btn=document.getElementById('btnRefresh'), st=document.getElementById('updStatus');
-  updateHeaderDate();
-  btn.disabled=true; st.textContent='正在拉取官方最新赛果…';
+  if(currentSport==='basketball'){ btn.disabled=true; st.textContent='正在拉取篮球赛程、比分及赛果…'; }
+  try{
+    let resultError=false;
+    const [online,live,fixtures]=await Promise.all([
+      fetchBasketRecent().catch(()=>{resultError=true;return[];}),fetchBasketLive(),fetchBasketFixtures()
+    ]);
+    const rowMap={};
+    basketRows.forEach(m=>rowMap[m.date+'|'+m.num]=m);
+    fixtures.forEach(f=>{
+      const key=f.date+'|'+f.num;
+      if(!rowMap[key]||!rowMap[key].fromResult) rowMap[key]=f;
+    });
+    online.forEach(rec=>{
+      const key=rec.matchDate+'|'+rec.matchNumStr, base=rowMap[key]||{};
+      rowMap[key]=basketResultRow(rec,base,findBasketLive(base,live));
+    });
+    Object.values(rowMap).forEach(m=>applyBasketLive(m,findBasketLive(m,live)));
+    basketRows=Object.values(rowMap);
+    if(currentSport==='basketball'){
+      renderAll();
+      const now=new Date();
+      st.textContent=resultError?'赛果暂不可用，已更新赛程与比分':`已更新 ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+    }
+  }catch(e){
+    if(currentSport==='basketball'){ st.textContent='网络异常，显示已缓存篮球数据'; renderAll(); }
+  }finally{
+    refreshing.basketball=false;
+    syncRefreshButton();
+  }
+}
+
+function updateHeaderDate(){
+  const el=document.getElementById('header-date');
+  if(el) el.textContent=currentSport==='football'
+    ?'2025-09-01 至 '+fmtDate(new Date())
+    :fmtDate(new Date(Date.now()-10*864e5))+' 起 · 近期赛果与在售赛程';
+}
+
+function syncRefreshButton(){
+  document.getElementById('btnRefresh').disabled=!!refreshing[currentSport];
+}
+
+async function refreshFootball(){
+  if(refreshing.football) return;
+  refreshing.football=true;
+  const btn=document.getElementById('btnRefresh'), st=document.getElementById('updStatus');
+  if(currentSport==='football'){ btn.disabled=true; st.textContent='正在拉取官方最新赛果…'; }
   try{
     const [online,liv,fx]=await Promise.all([fetchRecent(),fetchLive(),fetchFixtures()]);
     const tmap=fx.tmap;
@@ -438,18 +738,49 @@ async function refresh(){
     });
 
     rows=Object.values(rowMap);
-    renderAll();
-    if(needDetail.length) st.textContent=`补取 ${needDetail.length} 场赔率…`;
+    if(currentSport==='football'){
+      renderAll();
+      if(needDetail.length) st.textContent=`补取 ${needDetail.length} 场赔率…`;
+    }
     await fillDetailSp(needDetail);
-    renderAll();
-    const now=new Date();
-    st.textContent=`已更新 ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+    if(currentSport==='football'){
+      renderAll();
+      const now=new Date();
+      st.textContent=`已更新 ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+    }
   }catch(e){
-    st.textContent='网络异常，显示本地快照';
-    renderAll();
+    if(currentSport==='football'){ st.textContent='网络异常，显示本地快照'; renderAll(); }
   }finally{
-    btn.disabled=false;
+    refreshing.football=false;
+    syncRefreshButton();
   }
+}
+
+function refresh(){
+  updateHeaderDate();
+  return currentSport==='basketball'?refreshBasketball():refreshFootball();
+}
+
+function setSport(sport){
+  if(sport===currentSport) return;
+  currentSport=sport;
+  const basket=sport==='basketball';
+  document.getElementById('pageTitle').textContent=basket?'竞彩篮球赛程及赛果':'竞彩足球赛程及赛果';
+  document.getElementById('headerMarkets').textContent=basket?'终场比分 · 胜负 · 让分胜负 · 大小分 · 胜分差':'比分 · 胜平负 · 让球胜平负 · 总进球 · 半全场胜平负';
+  document.getElementById('footNote').textContent=basket
+    ?'篮球按左客队、右主队显示，比分为客队-主队；让分以主队为基准，大小分按两队总分计算。彩果与固定奖金以官方公布为准。'
+    :'各玩法结果与赔率以中国竞彩网官方公布为准；"-" 表示该玩法官方未开售或暂未开奖。';
+  document.title=basket?'竞彩篮球赛程及赛果':'竞彩足球赛程及赛果';
+  ['Football','Basketball'].forEach(name=>{
+    const active=(name==='Basketball')===basket, tab=document.getElementById('tab'+name);
+    tab.classList.toggle('active',active);
+    tab.setAttribute('aria-selected',String(active));
+  });
+  updateHeaderDate();
+  renderAll();
+  syncRefreshButton();
+  document.getElementById('updStatus').textContent='加载中…';
+  refresh();
 }
 
 renderAll();
@@ -457,6 +788,8 @@ updateHeaderDate();
 refresh();
 setInterval(()=>{if(!document.getElementById('btnRefresh').disabled) refresh();},60000);
 document.getElementById('btnRefresh').onclick=refresh;
+document.getElementById('tabFootball').onclick=()=>setSport('football');
+document.getElementById('tabBasketball').onclick=()=>setSport('basketball');
 </script>
 </body>
 </html>
