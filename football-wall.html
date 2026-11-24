@@ -1,0 +1,565 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>竞彩足球赛事大屏</title>
+<style>
+:root{color-scheme:dark;--navy:#020b19;--panel:#06172b;--line:#245277;--text:#f4fbff;--muted:#8ca9bd;--lime:#d7ed91;--green:#20dd83;--red:#ff5d55;--amber:#ffc45c}
+*{box-sizing:border-box}
+html,body{margin:0;min-height:100%;background:var(--navy)}
+body{font-family:"Microsoft YaHei","PingFang SC",Arial,sans-serif;color:var(--text);overflow:hidden}
+.board{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));grid-template-rows:repeat(3,minmax(0,1fr));gap:2px;width:100vw;height:100vh;height:100svh;padding:2px;background:#153b5c}
+.match-card{position:relative;isolation:isolate;min-width:0;min-height:0;overflow:hidden;container-type:inline-size;background:radial-gradient(ellipse at 50% 35%,#0b4260 0,#082a48 38%,#051a32 68%,#020d20 100%)}
+.match-card::before{content:"";position:absolute;inset:0;z-index:-1;background:linear-gradient(115deg,transparent 20%,rgba(72,184,230,.08) 45%,transparent 65%),repeating-linear-gradient(90deg,transparent 0 12%,rgba(83,154,197,.025) 12% 12.2%);pointer-events:none}
+.match-card::after{content:"";position:absolute;inset:0;box-shadow:inset 0 0 32px rgba(0,0,0,.5);pointer-events:none;z-index:8}
+.visual{position:absolute;inset:0 0 27px}
+.match-no{position:absolute;z-index:5;top:1.5%;left:1.4%;color:var(--lime);font-family:Arial,sans-serif;font-size:clamp(23px,5.4cqi,52px);font-weight:800;font-style:italic;line-height:1;letter-spacing:-2px;text-shadow:0 0 12px rgba(215,237,145,.24)}
+.league{position:absolute;z-index:5;top:2.5%;left:50%;max-width:36%;transform:translateX(-50%);overflow:hidden;color:#b8d9e8;font-size:clamp(9px,1.65cqi,15px);font-weight:600;line-height:1.5;text-overflow:ellipsis;white-space:nowrap}
+.league::before{content:"";display:inline-block;width:5px;height:5px;margin:0 5px 2px 0;border-radius:50%;background:var(--league-color,#3fe1aa);box-shadow:0 0 7px var(--league-color,#3fe1aa)}
+.kickoff{position:absolute;z-index:5;top:2.5%;right:1.5%;color:#89a9bd;font-family:Arial,sans-serif;font-size:clamp(9px,1.55cqi,14px);line-height:1.5}
+.pitch-wrap{position:absolute;z-index:1;inset:12% 7% 23%;perspective:520px;filter:drop-shadow(0 14px 12px rgba(0,0,0,.45))}
+.pitch-wrap::before{content:"";position:absolute;inset:5% -5% -4%;background:radial-gradient(ellipse,rgba(0,255,150,.2),transparent 67%);filter:blur(10px)}
+.pitch{position:absolute;inset:0;overflow:visible;transform:rotateX(53deg) scale(1.06);transform-origin:50% 60%;border:2px solid rgba(180,255,220,.72);border-radius:2px;background:repeating-linear-gradient(90deg,#009b54 0 10%,#00ad5e 10% 20%);box-shadow:inset 0 0 30px rgba(0,255,155,.25),0 0 9px rgba(49,255,170,.5)}
+.pitch::before{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(130,255,200,.14),transparent 42%,rgba(0,35,20,.2));pointer-events:none}
+.pitch::after{content:"";position:absolute;inset:-5px;border:1px solid rgba(35,255,165,.18);box-shadow:0 0 16px rgba(35,255,165,.18)}
+.line{position:absolute;display:block;border-color:rgba(222,255,236,.76);border-style:solid;z-index:2}
+.halfway{top:0;bottom:0;left:50%;border-width:0 0 0 1px}
+.center-circle{left:40%;top:50%;width:20%;aspect-ratio:1;border-width:1px;border-radius:50%;transform:translateY(-50%)}
+.center-dot{left:calc(50% - 2px);top:calc(50% - 2px);width:4px;height:4px;border:0;border-radius:50%;background:rgba(235,255,243,.8)}
+.penalty-left{left:0;top:24%;width:16%;height:52%;border-width:1px 1px 1px 0}
+.penalty-right{right:0;top:24%;width:16%;height:52%;border-width:1px 0 1px 1px}
+.goal-left{left:0;top:38%;width:6.5%;height:24%;border-width:1px 1px 1px 0}
+.goal-right{right:0;top:38%;width:6.5%;height:24%;border-width:1px 0 1px 1px}
+.arc-left{left:14%;top:38%;width:10%;height:24%;border-width:1px 1px 1px 0;border-radius:0 50% 50% 0}
+.arc-right{right:14%;top:38%;width:10%;height:24%;border-width:1px 0 1px 1px;border-radius:50% 0 0 50%}
+.score-panel{position:absolute;z-index:4;right:1.3%;bottom:0;left:1.3%;display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);align-items:center;gap:1.5cqi;padding:4.5% 2.2% 2.5%;border:1px solid rgba(65,133,174,.4);border-bottom:0;background:linear-gradient(180deg,rgba(8,39,64,.88),rgba(2,13,29,.98) 55%);box-shadow:0 -8px 24px rgba(0,0,0,.3)}
+.team{display:flex;align-items:center;gap:1.1cqi;min-width:0;color:#f2f8fb;font-size:clamp(10px,2.25cqi,21px);font-weight:600}
+.team.home{justify-content:flex-end;text-align:right}
+.team.away{justify-content:flex-start;text-align:left}
+.team-name{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-shadow:0 1px 4px #000}
+.team-badge{display:grid;flex:none;width:clamp(23px,5cqi,46px);aspect-ratio:1;place-items:center;border:1px solid rgba(199,231,239,.65);border-radius:50%;background:radial-gradient(circle at 35% 30%,#f7fbff 0 18%,#a8d6df 20% 36%,#24718c 38% 62%,#092b43 64%);box-shadow:0 0 0 2px rgba(3,21,39,.7),0 2px 8px #000;color:#fff;font-size:clamp(9px,1.65cqi,15px);font-weight:800;text-shadow:0 1px 3px #00101e}
+.score-center{min-width:24cqi;text-align:center}
+.state{display:inline-flex;align-items:center;justify-content:center;gap:4px;min-height:16px;margin-bottom:3px;padding:1px 7px;border-radius:2px;background:rgba(77,111,133,.25);color:#b8cfdb;font-size:clamp(8px,1.5cqi,13px);font-weight:600;line-height:1.3;white-space:nowrap}
+.state.live{background:rgba(202,48,43,.25);color:#ff9c94}
+.state.finished{color:#87d8b1;background:rgba(27,140,88,.18)}
+.live-dot{width:5px;height:5px;border-radius:50%;background:var(--red);box-shadow:0 0 7px var(--red);animation:pulse 1.4s ease-in-out infinite}
+.score{display:flex;align-items:center;justify-content:center;gap:.65cqi;font-family:"Arial Narrow",Arial,sans-serif;font-size:clamp(25px,5.6cqi,52px);font-weight:800;line-height:1;letter-spacing:-1px;text-shadow:0 2px 6px #000}
+.score-num{display:grid;min-width:1.35em;height:1.35em;place-items:center;border:1px solid rgba(106,143,161,.25);border-radius:2px;background:linear-gradient(180deg,#20333c,#101e28);box-shadow:inset 0 1px rgba(255,255,255,.06)}
+.score-colon{color:#a9bdc5;font-size:.75em;transform:translateY(-2px)}
+.score-vs{min-width:3.6em;color:#b5c7cf;font-size:.72em;letter-spacing:2px}
+.score-caption{margin-top:4px;color:#6f91a7;font-size:clamp(7px,1.25cqi,11px);line-height:1.2;letter-spacing:1px}
+.data-strip{position:absolute;z-index:6;right:0;bottom:0;left:0;display:flex;align-items:center;gap:1.5cqi;height:27px;padding:0 1.5%;overflow:hidden;border-top:1px solid rgba(65,128,165,.35);background:#031121;color:#91aabc;font-size:clamp(8px,1.35cqi,12px);white-space:nowrap}
+.metric{display:inline-flex;align-items:center;gap:4px}
+.metric-icon{display:grid;width:15px;height:15px;place-items:center;border-radius:1px;background:#28536b;color:#d5edf5;font-size:9px;font-style:normal;font-weight:700}
+.metric-icon.win{background:#b74743}.metric-icon.draw{background:#a07832}.metric-icon.lose{background:#287a5a}
+.metric-value{color:#d5e4ea;font-weight:600}
+.card-metric{gap:4px}
+.card-symbol{display:inline-block;width:8px;height:12px;border:1px solid rgba(255,255,255,.35);border-radius:1px;box-shadow:0 1px 3px rgba(0,0,0,.4)}
+.card-symbol.yellow{background:#ffd23f}.card-symbol.red{background:#ef4b47}
+.match-date{margin-left:auto;color:#698ca2;font-family:Arial,sans-serif}
+.is-live{box-shadow:inset 0 0 0 1px rgba(255,87,76,.25)}
+.is-live .pitch{box-shadow:inset 0 0 30px rgba(0,255,155,.3),0 0 13px rgba(49,255,170,.65)}
+.message{grid-column:1/-1;grid-row:1/-1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;background:radial-gradient(ellipse at center,#0a304c,#020b19 70%);color:#a9c2d2;font-size:15px;text-align:center}
+.message strong{color:#e6f2f7;font-size:20px}
+.message button{padding:9px 20px;border:1px solid #387799;border-radius:4px;background:#103a55;color:#e9f7ff;font:inherit;cursor:pointer}
+.message button:focus-visible{outline:2px solid var(--lime);outline-offset:3px}
+.loader{width:28px;height:28px;border:2px solid #245069;border-top-color:#62e7ba;border-radius:50%;animation:spin .9s linear infinite}
+.notice{position:fixed;z-index:20;right:12px;bottom:12px;max-width:min(420px,calc(100vw - 24px));padding:9px 14px;border:1px solid rgba(255,156,100,.45);border-radius:4px;background:rgba(39,24,18,.94);box-shadow:0 5px 18px rgba(0,0,0,.35);color:#ffd2aa;font-size:12px;opacity:0;transform:translateY(8px);transition:.2s;pointer-events:none}
+.notice.show{opacity:1;transform:none}
+@keyframes pulse{50%{opacity:.35;transform:scale(.75)}}
+@keyframes spin{to{transform:rotate(360deg)}}
+.match-card{cursor:pointer}
+.match-card:focus-visible{outline:3px solid var(--lime);outline-offset:-3px}
+body.modal-open{overflow:hidden!important}
+.event-modal[hidden]{display:none}
+.event-modal{position:fixed;inset:0;z-index:50;display:grid;place-items:center;padding:20px;background:rgba(0,7,17,.78);backdrop-filter:blur(5px)}
+.event-dialog{position:relative;width:min(960px,100%);max-height:90svh;overflow:auto;border-radius:8px;background:#f7f8fa;box-shadow:0 24px 80px rgba(0,0,0,.55);color:#20242a}
+.dialog-close{position:absolute;z-index:3;top:10px;right:12px;width:36px;height:36px;border:0;border-radius:50%;background:rgba(0,0,0,.2);color:#fff;font-size:26px;line-height:1;cursor:pointer}
+.dialog-close:focus-visible{outline:3px solid #f4cf55;outline-offset:2px}
+.detail-head{padding:0 28px 18px;border-bottom:1px solid #e2e5e8;background:#fff}
+.detail-teams{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);align-items:center;gap:20px;padding:24px 0 12px}
+.detail-team{font-size:20px;font-weight:600;line-height:1.4;overflow-wrap:anywhere}.detail-team.home{text-align:right}.detail-team.away{text-align:left}
+.detail-score{font-family:Arial,sans-serif;font-size:42px;font-weight:500;white-space:nowrap}
+.detail-state{color:#454b52;font-size:14px;text-align:center}
+.legend{display:flex;flex-wrap:wrap;justify-content:center;gap:18px;margin-top:16px;color:#737a81;font-size:12px}
+.legend-item{display:inline-flex;align-items:center;gap:5px}
+.event-icon{display:inline-grid;flex:none;width:15px;height:15px;place-items:center;font-family:Arial,sans-serif;font-size:15px;font-style:normal;font-weight:700;line-height:1}
+.event-icon.yellow,.event-icon.red{width:10px;height:14px;border-radius:1px}.event-icon.yellow{background:#f3c933}.event-icon.red{background:#e66b68}
+.event-icon.goal{color:#30343a}.event-icon.own{color:#d26b68}.event-icon.sub-in{color:#2aae67}.event-icon.sub-out{color:#df6c68}
+.timeline{position:relative;padding:28px 24px 38px}
+.timeline::before{content:"";position:absolute;top:20px;bottom:28px;left:50%;width:1px;background:#cdd2d6;transform:translateX(-50%)}
+.event-row{display:grid;grid-template-columns:minmax(0,1fr) 66px minmax(0,1fr);align-items:center;min-height:54px;margin-bottom:10px}
+.event-chip{display:inline-flex;align-items:center;gap:8px;max-width:100%;padding:10px 16px;background:#e9ecef;font-size:14px;line-height:1.4}
+.event-row.home .event-chip{grid-column:1;justify-self:end;text-align:right}.event-row.away .event-chip{grid-column:3;justify-self:start}
+.event-minute{z-index:1;display:grid;grid-column:2;grid-row:1;place-items:center;justify-self:center;width:48px;height:48px;border-radius:50%;background:#303236;color:#fff;font-family:Arial,sans-serif;font-size:14px}
+.event-player{overflow-wrap:anywhere}.no-events{padding:60px 20px;color:#8a9299;text-align:center}
+.season-summary{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);gap:16px;margin-top:14px;padding:12px 16px;background:#f3f5f7;color:#68717a;font-size:12px;line-height:1.7}
+.season-team.home{text-align:right}.season-team.away{text-align:left}.season-team strong{color:#30363c;font-weight:600}
+.season-phase{align-self:center;color:#30363c;font-size:13px;font-weight:600;text-align:center}
+.detail-loading,.empty-detail{padding:24px;color:#8a9299;text-align:center;font-size:13px}
+.player-details{padding:0 24px 32px}.player-details>h2{margin:0 0 16px;font-size:18px;font-weight:600}
+.player-panel{margin-top:16px;border:1px solid #e1e5e8;background:#fff}.player-panel h3{display:flex;justify-content:space-between;gap:12px;margin:0;padding:12px 14px;font-size:15px;font-weight:600}
+.formation{color:#7c858d;font-size:12px;font-weight:400}.table-scroll{overflow-x:auto}
+.player-table{width:100%;border-collapse:collapse;font-size:12px;white-space:nowrap}.player-table th,.player-table td{padding:9px 10px;border-top:1px solid #edf0f2;text-align:center}
+.player-table th{background:#f5f7f8;color:#6e777f;font-weight:500}.player-table td:nth-child(2){min-width:140px;text-align:left;white-space:normal}
+.player-table td:nth-child(2) small{display:block;margin-top:2px;color:#939ba2}.player-table .starter{color:#27985a}
+@media(max-width:640px){
+  .event-modal{padding:0}.event-dialog{width:100%;height:100svh;max-height:none;border-radius:0}
+  .detail-head{padding:0 14px 14px}.detail-teams{gap:10px}.detail-team{font-size:16px}.detail-score{font-size:32px}
+  .legend{gap:10px}.timeline{padding:20px 8px}.event-row{grid-template-columns:minmax(0,1fr) 52px minmax(0,1fr)}
+  .event-chip{padding:8px;font-size:12px}.event-minute{width:40px;height:40px;font-size:12px}
+  .season-summary{gap:8px;padding:10px;font-size:11px}.season-phase{font-size:11px}
+  .player-details{padding:0 10px 24px}.player-panel h3{font-size:13px}.player-table th,.player-table td{padding:8px}
+}
+@media(max-width:720px) and (orientation:portrait){
+  body{overflow:auto}
+  .board{grid-template-columns:1fr;grid-template-rows:none;grid-auto-rows:minmax(255px,52svh);width:100%;height:auto;min-height:100svh}
+  .message{min-height:100svh}
+}
+@media(max-height:600px) and (orientation:landscape){
+  .visual{bottom:22px}.data-strip{height:22px}.score-panel{padding-top:2.5%}.pitch-wrap{inset:13% 11% 25%}.team-badge{width:clamp(19px,4cqi,32px)}
+}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<main id="board" class="board" aria-label="竞彩足球实时赛事大屏" aria-busy="true">
+  <div class="message"><span class="loader" aria-hidden="true"></span><strong>正在加载赛事数据</strong><span>正在连接中国竞彩网官方接口…</span></div>
+</main>
+<div id="notice" class="notice" role="status" aria-live="polite"></div>
+<div id="eventModal" class="event-modal" hidden>
+  <section class="event-dialog" role="dialog" aria-modal="true" aria-labelledby="eventTitle">
+    <button id="closeEvents" class="dialog-close" type="button" aria-label="关闭比赛事件">×</button>
+    <div id="eventContent"></div>
+  </section>
+</div>
+<script>
+const LIST_API="https://webapi.sporttery.cn/gateway/uniform/football/getUniformMatchResultV1.qry";
+const TIME_API="https://webapi.sporttery.cn/gateway/jc/football/getMatchCalculatorV1.qry?poolCode=hhad&channel=c";
+const LIVE_API="https://webapi.sporttery.cn/gateway/uniform/fb/getMatchLiveV1.qry?method=live";
+const EVENT_API="https://webapi.sporttery.cn/gateway/uniform/fb/getMatchEventV1.qry?matchId=";
+const HEAD_API="https://webapi.sporttery.cn/gateway/uniform/football/getMatchHeadV1.qry?source=web&sportteryMatchId=";
+const PLAYER_API="https://webapi.sporttery.cn/gateway/uniform/football/matchlive/getPlayerStatisV1.qry?gmMatchId=";
+const HTTP_HEAD={};
+const board=document.getElementById('board');
+const notice=document.getElementById('notice');
+const eventModal=document.getElementById('eventModal');
+const eventContent=document.getElementById('eventContent');
+let matches=[];
+let refreshing=false;
+let activeMatchId=null;
+let lastTrigger=null;
+
+function esc(v){return String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+function fmtDate(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
+function parseScore(score){const m=String(score||'').match(/^(\d+)\s*[:：]\s*(\d+)$/);return m?[Number(m[1]),Number(m[2])]:null;}
+function dayDiff(a,b){return Math.abs((new Date(a+'T00:00:00+08:00')-new Date(b+'T00:00:00+08:00'))/864e5);}
+function kickTimestamp(m){const d=m.playDate||m.date;if(!d||!m.time)return 0;return new Date(d+'T'+m.time+':00+08:00').getTime();}
+function matchKey(date,num){return date+'|'+num;}
+
+async function fetchLive(){
+  try{
+    const r=await fetch(LIVE_API,{headers:HTTP_HEAD});
+    if(!r.ok)throw new Error('live '+r.status);
+    const j=await r.json();
+    return (j.value||[]).map(m=>({
+      t:(m.matchTime||'').slice(0,5),st:String(m.matchStatus||''),minute:m.matchMinute||'',matchId:m.matchId||'',
+      full:m.sectionsNo999||'',half:m.sectionsNo1||'',d:m.matchDate,
+      home:m.homeTeamAbbName||'',away:m.awayTeamAbbName||'',
+      key:(m.homeTeamAbbName||'')+'|'+(m.awayTeamAbbName||'')
+    }));
+  }catch(e){return[];}
+}
+
+async function fetchFixtures(){
+  const result=[];
+  try{
+    const r=await fetch(TIME_API,{headers:HTTP_HEAD});
+    if(!r.ok)throw new Error('fixtures '+r.status);
+    const j=await r.json();
+    ((j.value||{}).matchInfoList||[]).forEach(d=>{
+      (d.subMatchList||[]).forEach(m=>{
+        const time=(m.matchTime||'').slice(0,5);
+        if(!time)return;
+        const playDate=m.matchDate||d.businessDate;
+        result.push({
+          id:matchKey(d.businessDate,m.matchNumStr),date:d.businessDate,num:m.matchNumStr,
+          league:m.leagueAbbName||'',home:m.homeTeamAbbName||'',away:m.awayTeamAbbName||'',
+          handicap:(m.hhad||{}).goalLine||'',time,playDate,full:'--',half:'--',minute:'',matchId:m.matchId||'',cards:null,
+          status:Date.now()>new Date(playDate+'T'+time+':00+08:00').getTime()?'L':'1'
+        });
+      });
+    });
+  }catch(e){}
+  return result;
+}
+
+async function fetchRecent(){
+  const today=new Date();
+  const from=new Date(Date.now()-10*864e5);
+  let all=[],page=1;
+  while(true){
+    const url=`${LIST_API}?matchBeginDate=${fmtDate(from)}&matchEndDate=${fmtDate(today)}&leagueId=&pageSize=100&pageNo=${page}&isFix=0&matchPage=1&pcOrWap=1`;
+    const r=await fetch(url,{headers:HTTP_HEAD});
+    if(!r.ok)throw new Error('results '+r.status);
+    const j=await r.json();
+    const v=j.value||{},list=v.matchResult||[];
+    all=all.concat(list);
+    if(page>=(v.pages||1)||!list.length)break;
+    page++;
+  }
+  return all;
+}
+
+async function loadCards(match){
+  match.events=[];
+  if(!match.matchId||match.status==='1'){match.cards=null;return;}
+  try{
+    const r=await fetch(EVENT_API+encodeURIComponent(match.matchId),{headers:HTTP_HEAD});
+    if(!r.ok)throw new Error('events '+r.status);
+    const j=await r.json();
+    const events=(j.value||{}).eventList||[];
+    match.events=events;
+    if(!events.length){match.cards=null;return;}
+    const cards={homeYellow:0,awayYellow:0,homeRed:0,awayRed:0};
+    events.forEach(e=>{
+      if(e.teamType!=='home'&&e.teamType!=='away')return;
+      const side=e.teamType==='home'?'home':'away';
+      if(e.eventCode==='YC')cards[side+'Yellow']++;
+      else if(e.eventCode==='RC')cards[side+'Red']++;
+    });
+    match.cards=cards;
+  }catch(e){match.cards=null;match.events=[];}
+}
+
+function findLive(match,liveList){
+  const key=(match.home||'')+'|'+(match.away||'');
+  const base=match.playDate||match.date;
+  return liveList.find(v=>v.key===key&&dayDiff(v.d,base)<=1)||null;
+}
+
+function applyLive(match,lv){
+  if(!lv)return match;
+  if((!match.full||match.full==='--')&&lv.full)match.full=lv.full;
+  if((!match.half||match.half==='--')&&lv.half)match.half=lv.half;
+  if(lv.t)match.time=lv.t;
+  if(!match.matchId&&lv.matchId)match.matchId=lv.matchId;
+  if(lv.st==='5')match.status='L';
+  else if(lv.st==='6')match.status='E';
+  else if(lv.st==='4')match.status='1';
+  match.minute=(match.status==='L'||match.status==='E')?(lv.minute||''):'';
+  return match;
+}
+
+function resultRow(rec,base,lv){
+  const m=Object.assign({},base);
+  m.matchId=rec.matchId||base.matchId||(lv&&lv.matchId)||'';
+  m.full=rec.sectionsNo999||(lv&&lv.full)||'--';
+  m.half=rec.sectionsNo1||(lv&&lv.half)||'--';
+  m.time=(lv&&lv.t)||base.time||'';
+  m.status=rec.matchResultStatus;
+  if(m.status==='1'&&m.time&&Date.now()>kickTimestamp(m))m.status='L';
+  return applyLive(m,lv);
+}
+
+function leagueColor(name){
+  let hash=0;
+  for(const ch of String(name||''))hash=(hash*31+ch.codePointAt(0))%360;
+  return `hsl(${hash||155} 70% 65%)`;
+}
+
+function displayNumber(num){
+  const raw=String(num||'').slice(-3);
+  const n=parseInt(raw,10);
+  return Number.isFinite(n)?String(n).padStart(2,'0'):raw;
+}
+
+function statusInfo(m){
+  if(m.status==='0'||m.full==='取消'||m.full==='无效场次')return{cls:'',text:'取消/无效'};
+  if(m.status==='L'){
+    let minute=String(m.minute||'');
+    if(minute&&!minute.includes("'"))minute+="'";
+    return{cls:'live',text:'直播中 '+(minute||''),dot:true};
+  }
+  if(m.status==='E')return{cls:'finished',text:'已结束'};
+  if(m.status==='2')return{cls:'finished',text:'已完成'};
+  if(m.time&&Date.now()>kickTimestamp(m))return{cls:'',text:'待开奖'};
+  return{cls:'',text:'未开赛'};
+}
+
+function pitchMarkup(){
+  return '<div class="pitch-wrap" aria-hidden="true"><div class="pitch">'+
+    '<i class="line halfway"></i><i class="line center-circle"></i><i class="line center-dot"></i>'+
+    '<i class="line penalty-left"></i><i class="line penalty-right"></i>'+
+    '<i class="line goal-left"></i><i class="line goal-right"></i>'+
+    '<i class="line arc-left"></i><i class="line arc-right"></i>'+
+  '</div></div>';
+}
+
+function scoreMarkup(m){
+  const score=parseScore(m.full);
+  if(score)return `<div class="score"><span class="score-num">${score[0]}</span><span class="score-colon">:</span><span class="score-num">${score[1]}</span></div>`;
+  if(m.full&&m.full!=='--'&&!['取消','无效场次'].includes(m.full))return `<div class="score"><span class="score-vs">${esc(m.full)}</span></div>`;
+  return '<div class="score"><span class="score-vs">VS</span></div>';
+}
+
+function resultInfo(m){
+  const score=parseScore(m.full);
+  if(!score)return{label:'待定',icon:'—',cls:'',goals:'--'};
+  const [h,a]=score;
+  return h>a?{label:'主胜',icon:'胜',cls:'win',goals:String(h+a)}:h===a?{label:'平局',icon:'平',cls:'draw',goals:String(h+a)}:{label:'客胜',icon:'负',cls:'lose',goals:String(h+a)};
+}
+
+function matchCard(m){
+  const state=statusInfo(m),result=resultInfo(m);
+  const yellowCards=m.cards?`主${m.cards.homeYellow}·客${m.cards.awayYellow}`:'主--·客--';
+  const redCards=m.cards?`主${m.cards.homeRed}·客${m.cards.awayRed}`:'主--·客--';
+  const half=parseScore(m.half)?m.half:'--';
+  const caption=parseScore(m.full)?(m.status==='L'?'实时比分':'全场比分'):(m.status==='0'?'赛事状态':'等待开赛');
+  const weekday=String(m.num||'').slice(0,2);
+  const time=m.time||'--:--';
+  const label=`${m.league}，${m.home} 对 ${m.away}，${parseScore(m.full)?m.full:'未开赛'}，${state.text}`;
+  return `<article class="match-card ${m.status==='L'?'is-live':''}" data-match="${esc(m.id)}" tabindex="0" role="button" title="点击查看比赛事件" aria-label="${esc(label)}，查看比赛事件">
+    <div class="visual">
+      <div class="match-no">-${esc(displayNumber(m.num))}-</div>
+      <div class="league" style="--league-color:${leagueColor(m.league)}">${esc(m.league||'竞彩足球')}</div>
+      <div class="kickoff">${esc((m.playDate||m.date||'').slice(5))} ${esc(time)}</div>
+      ${pitchMarkup()}
+      <div class="score-panel">
+        <div class="team home"><span class="team-name">${esc(m.home)}</span><span class="team-badge" aria-hidden="true">${esc(Array.from(m.home||'主')[0])}</span></div>
+        <div class="score-center">
+          <div class="state ${state.cls}">${state.dot?'<i class="live-dot"></i>':''}${esc(state.text)}</div>
+          ${scoreMarkup(m)}
+          <div class="score-caption">${caption}</div>
+        </div>
+        <div class="team away"><span class="team-badge" aria-hidden="true">${esc(Array.from(m.away||'客')[0])}</span><span class="team-name">${esc(m.away)}</span></div>
+      </div>
+    </div>
+    <div class="data-strip">
+      <span class="metric"><i class="metric-icon ${result.cls}">${result.icon}</i><span class="metric-value">${result.label}</span></span>
+      <span class="metric">总进球 <span class="metric-value">${result.goals}</span></span>
+      <span class="metric">半场 <span class="metric-value">${esc(half)}</span></span>
+      <span class="metric card-metric" title="黄牌（主队 / 客队）" aria-label="黄牌 ${yellowCards}"><i class="card-symbol yellow" aria-hidden="true"></i><span class="metric-value">${yellowCards}</span></span>
+      <span class="metric card-metric" title="红牌（主队 / 客队）" aria-label="红牌 ${redCards}"><i class="card-symbol red" aria-hidden="true"></i><span class="metric-value">${redCards}</span></span>
+      <span class="match-date">${esc(weekday)} ${esc(m.num?String(m.num).slice(2):'')}</span>
+    </div>
+  </article>`;
+}
+
+async function fetchValue(url){
+  const r=await fetch(url,{headers:HTTP_HEAD});
+  if(!r.ok)throw new Error('detail '+r.status);
+  return (await r.json()).value||null;
+}
+
+async function loadMatchDetails(match){
+  if(!match||!match.matchId||match.detailsLoading||match.detailsLoaded)return;
+  match.detailsLoading=true;
+  if(activeMatchId===match.id&&!eventModal.hidden)renderEventDetail();
+  const [head,players]=await Promise.allSettled([
+    fetchValue(HEAD_API+encodeURIComponent(match.matchId)),
+    fetchValue(PLAYER_API+encodeURIComponent(match.matchId))
+  ]);
+  match.headInfo=head.status==='fulfilled'?head.value:null;
+  match.playerInfo=players.status==='fulfilled'?players.value:null;
+  match.detailsLoaded=true;
+  match.detailsLoading=false;
+  if(activeMatchId===match.id&&!eventModal.hidden)renderEventDetail();
+}
+
+function eventMeta(e){
+  const icons={
+    YC:'<i class="event-icon yellow" aria-hidden="true"></i>',
+    RC:'<i class="event-icon red" aria-hidden="true"></i>',
+    G:'<i class="event-icon goal" aria-hidden="true">◎</i>',
+    OG:'<i class="event-icon own" aria-hidden="true">◎</i>',
+    SI:'<i class="event-icon sub-in" aria-hidden="true">↑</i>',
+    SO:'<i class="event-icon sub-out" aria-hidden="true">↓</i>'
+  };
+  const names={YC:'黄牌',RC:'红牌',G:'进球',OG:'乌龙球',SI:'换上',SO:'换下'};
+  const code=e.eventCode==='OG'||e.eventTc==='own_goals'?'OG':e.eventCode;
+  return icons[code]?{icon:icons[code],name:names[code]}:null;
+}
+
+function eventRow(e){
+  const meta=eventMeta(e);
+  if(!meta)return '';
+  const side=e.teamType==='away'?'away':'home';
+  const minute=String(e.matchMinute||'--')+(e.matchMinuteExtra?'+'+e.matchMinuteExtra:'')+"'";
+  const number=e.uniformNo||e.uniformno||'';
+  const player=e.personEnName||e.personName||e.personenname||'球员';
+  const playerText=(number?number+'-':'')+player;
+  const chip=side==='home'
+    ?`<span class="event-player">${esc(playerText)}</span>${meta.icon}`
+    :`${meta.icon}<span class="event-player">${esc(playerText)}</span>`;
+  return `<div class="event-row ${side}" title="${meta.name} ${esc(minute)}"><div class="event-chip">${chip}</div><div class="event-minute">${esc(minute)}</div></div>`;
+}
+
+function seasonTeam(stats,side){
+  if(!stats)return '';
+  const value=v=>v===undefined||v===null||v===''?'--':v;
+  const prefix=side==='home'?'sHome':'sAway';
+  const venue=side==='home'?'主场':'客场';
+  return `<div class="season-team ${side}"><strong>${esc(value(stats.phaseName))} 第${esc(value(stats.ranking))}名</strong><br>总 ${esc(value(stats.sWinGoalMatchCnt))}胜${esc(value(stats.sDrawMatchCnt))}平${esc(value(stats.sLossGoalMatchCnt))}负<br>${venue} ${esc(value(stats[prefix+'WinGoalMatchCnt']))}胜${esc(value(stats[prefix+'DrawMatchCnt']))}平${esc(value(stats[prefix+'LossGoalMatchCnt']))}负</div>`;
+}
+
+function seasonMarkup(head){
+  const stats=head&&head.wbsjStats;
+  if(!stats)return '';
+  return `<div class="season-summary">${seasonTeam(stats.home,'home')}<div class="season-phase">${esc(head.phaseName||'')}</div>${seasonTeam(stats.away,'away')}</div>`;
+}
+
+function playerTable(teamName,formation,players){
+  const list=Array.isArray(players)?players:[];
+  const rows=list.length?list.map(p=>{
+    const starter=String(p.starterFlag)==='1';
+    return `<tr><td>${esc(p.uniformNo||'--')}</td><td>${esc(p.personName||'球员')}<small>${esc(p.playerPositionDesc||'')}</small></td><td class="${starter?'starter':''}">${starter?'首发':'替补'}</td><td>${Number(p.goalCnt||0)}</td><td>${Number(p.ownGoalCnt||0)}</td><td>${Number(p.yellowCardCnt||0)}</td><td>${Number(p.redCardCnt||0)}</td><td>${Number(p.substituteInMatchCnt||0)}</td><td>${Number(p.substituteOutMatchCnt||0)}</td></tr>`;
+  }).join(''):'<tr><td colspan="9">暂无球员统计</td></tr>';
+  return `<section class="player-panel"><h3>${esc(teamName)}<span class="formation">阵型 ${esc(formation||'--')}</span></h3><div class="table-scroll"><table class="player-table"><thead><tr><th>号码</th><th>球员</th><th>状态</th><th>进球</th><th>乌龙</th><th>黄牌</th><th>红牌</th><th>换上</th><th>换下</th></tr></thead><tbody>${rows}</tbody></table></div></section>`;
+}
+
+function playersMarkup(match){
+  if(match.detailsLoading&&!match.playerInfo)return '<div class="detail-loading">赛事与球员数据加载中…</div>';
+  if(!match.playerInfo)return '<div class="empty-detail">暂无球员本场统计数据</div>';
+  const p=match.playerInfo;
+  return `<section class="player-details"><h2>球员本场分析</h2>${playerTable(match.home,p.homeTeamFormation,p.homePlayerStats)}${playerTable(match.away,p.awayTeamFormation,p.awayPlayerStats)}</section>`;
+}
+
+function renderEventDetail(){
+  const m=matches.find(item=>item.id===activeMatchId);
+  if(!m){closeEventModal();return;}
+  const state=statusInfo(m);
+  const score=parseScore(m.full)?m.full:'VS';
+  const events=(m.events||[]).filter(e=>eventMeta(e)).slice().sort((a,b)=>{
+    const minuteDiff=(parseInt(a.matchMinute,10)||0)-(parseInt(b.matchMinute,10)||0);
+    return minuteDiff||(parseInt(a.matchMinuteExtra,10)||0)-(parseInt(b.matchMinuteExtra,10)||0);
+  });
+  const timeline=events.length?events.map(eventRow).join(''):'<div class="no-events">暂无已记录的比赛事件</div>';
+  const season=seasonMarkup(m.headInfo);
+  const playerDetails=playersMarkup(m);
+  eventContent.innerHTML=`<div class="detail-head">
+    <div class="detail-teams">
+      <div class="detail-team home">${esc(m.home)}</div>
+      <div class="detail-score">${esc(score)}</div>
+      <div class="detail-team away">${esc(m.away)}</div>
+    </div>
+    <div id="eventTitle" class="detail-state">${esc(m.league)} · ${esc(m.num)} · ${esc(state.text)}</div>
+    ${season}
+    <div class="legend" aria-label="事件图例">
+      <span class="legend-item"><i class="event-icon yellow"></i>黄牌</span>
+      <span class="legend-item"><i class="event-icon red"></i>红牌</span>
+      <span class="legend-item"><i class="event-icon goal">◎</i>进球</span>
+      <span class="legend-item"><i class="event-icon own">◎</i>乌龙球</span>
+      <span class="legend-item"><i class="event-icon sub-in">↑</i>换上</span>
+      <span class="legend-item"><i class="event-icon sub-out">↓</i>换下</span>
+    </div>
+  </div>
+  <div class="timeline" aria-label="比赛事件时间轴">${timeline}</div>
+  ${playerDetails}`;
+}
+
+function openEventModal(id,trigger){
+  activeMatchId=id;
+  lastTrigger=trigger||null;
+  renderEventDetail();
+  eventModal.hidden=false;
+  document.body.classList.add('modal-open');
+  document.getElementById('closeEvents').focus();
+  loadMatchDetails(matches.find(item=>item.id===id));
+}
+
+function closeEventModal(){
+  eventModal.hidden=true;
+  document.body.classList.remove('modal-open');
+  activeMatchId=null;
+  if(lastTrigger&&lastTrigger.isConnected)lastTrigger.focus();
+}
+
+function selectMatches(list){
+  const now=Date.now();
+  return list.slice().sort((a,b)=>{
+    const rank=m=>m.status==='L'?0:m.status==='E'?1:m.status==='0'?3:2;
+    const diff=rank(a)-rank(b);
+    if(diff)return diff;
+    const at=kickTimestamp(a),bt=kickTimestamp(b);
+    return Math.abs((at||now)-now)-Math.abs((bt||now)-now);
+  }).slice(0,6);
+}
+
+function render(){
+  const visible=selectMatches(matches);
+  board.innerHTML=visible.map(matchCard).join('');
+  board.setAttribute('aria-busy','false');
+}
+
+function renderError(){
+  board.innerHTML='<div class="message"><strong>赛事数据暂时不可用</strong><span>请检查网络，系统也会每60秒自动重试。</span><button id="retry" type="button">重新加载</button></div>';
+  document.getElementById('retry').onclick=refresh;
+  board.setAttribute('aria-busy','false');
+}
+
+function showNotice(text){
+  notice.textContent=text;
+  notice.classList.add('show');
+}
+
+async function refresh(){
+  if(refreshing)return;
+  refreshing=true;
+  if(!matches.length)board.setAttribute('aria-busy','true');
+  try{
+    const [online,liveList,fixtures]=await Promise.all([fetchRecent(),fetchLive(),fetchFixtures()]);
+    const map=new Map();
+    fixtures.forEach(m=>map.set(m.id,m));
+    online.forEach(rec=>{
+      const id=matchKey(rec.matchDate,rec.matchNumStr);
+      const base=map.get(id)||{
+        id,date:rec.matchDate,num:rec.matchNumStr,league:rec.leagueNameAbbr||'',
+        home:rec.homeTeam||'',away:rec.awayTeam||'',handicap:rec.goalLine||'',
+        time:'',playDate:rec.matchDate,full:'--',half:'--',minute:'',status:rec.matchResultStatus,
+        matchId:rec.matchId||'',cards:null
+      };
+      map.set(id,resultRow(rec,base,findLive(base,liveList)));
+    });
+    map.forEach((m,id)=>map.set(id,applyLive(m,findLive(m,liveList))));
+    matches=Array.from(map.values());
+    if(!matches.length)throw new Error('empty data');
+    render();
+    await Promise.all(selectMatches(matches).map(loadCards));
+    render();
+    if(!eventModal.hidden){
+      renderEventDetail();
+      loadMatchDetails(matches.find(item=>item.id===activeMatchId));
+    }
+    notice.classList.remove('show');
+  }catch(e){
+    if(!matches.length)renderError();
+    showNotice('数据更新失败，将保留当前赛事并在60秒后自动重试');
+  }finally{
+    refreshing=false;
+    board.setAttribute('aria-busy','false');
+  }
+}
+
+board.addEventListener('click',e=>{
+  const card=e.target.closest('.match-card');
+  if(card)openEventModal(card.dataset.match,card);
+});
+board.addEventListener('keydown',e=>{
+  const card=e.target.closest('.match-card');
+  if(card&&(e.key==='Enter'||e.key===' ')){
+    e.preventDefault();
+    openEventModal(card.dataset.match,card);
+  }
+});
+eventModal.addEventListener('click',e=>{if(e.target===eventModal)closeEventModal();});
+document.getElementById('closeEvents').addEventListener('click',closeEventModal);
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!eventModal.hidden)closeEventModal();});
+
+refresh();
+setInterval(refresh,60000);
+document.addEventListener('visibilitychange',()=>{if(!document.hidden)refresh();});
+</script>
+</body>
+</html>
