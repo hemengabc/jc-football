@@ -1,0 +1,241 @@
+{
+  "version": 1,
+  "updatedAt": "2026-11-24T14:01:00+08:00",
+  "source": {
+    "name": "JRS16",
+    "url": "https://www.jrs16.com/"
+  },
+  "matches": [
+    {
+      "sport": "football",
+      "league": "印班超",
+      "date": "2026-11-24",
+      "time": "13:25",
+      "startTime": "2026-11-24T13:25:00+08:00",
+      "home": "皇家班加罗尔",
+      "away": "反叛者SC",
+      "playUrl": "http://play.sportsteam368.com/play/steam827417.html",
+      "source": "JRS16"
+    },
+    {
+      "sport": "football",
+      "league": "乌克甲",
+      "date": "2026-11-24",
+      "time": "17:00",
+      "startTime": "2026-11-24T17:00:00+08:00",
+      "home": "沃洛奇斯克",
+      "away": "切尔尼夫",
+      "playUrl": "http://play.sportsteam368.com/play/steam827420.html",
+      "source": "JRS16"
+    },
+    {
+      "sport": "football",
+      "league": "亚精英赛",
+      "date": "2026-11-24",
+      "time": "18:00",
+      "startTime": "2026-11-24T18:00:00+08:00",
+      "home": "大田市民",
+      "away": "北京国安",
+      "playUrl": "http://play.sportsteam368.com/play/steam827423.html",
+      "source": "JRS16"
+    },
+    {
+      "sport": "basketball",
+      "league": "澳女篮",
+      "date": "2026-11-24",
+      "time": "18:00",
+      "startTime": "2026-11-24T18:00:00+08:00",
+      "home": "珀斯山猫女篮",
+      "away": "UC首都女篮",
+      "playUrl": "http://play.sportsteam368.com/play/steam827421.html",
+      "source": "JRS16"
+    },
+    {
+      "sport": "football",
+      "league": "亚精英赛",
+      "date": "2026-11-24",
+      "time": "18:00",
+      "startTime": "2026-11-24T18:00:00+08:00",
+      "home": "京都不死鸟",
+      "away": "浦项铁人",
+      "playUrl": "http://play.sportsteam368.com/play/steam827424.html",
+      "source": "JRS16"
+    },
+    {
+      "sport": "football",
+      "league": "亚美甲",
+      "date": "2026-11-24",
+      "time": "18:00",
+      "startTime": "2026-11-24T18:00:00+08:00",
+      "home": "萨达拉帕特B队",
+      "away": "艾拉华特B队",
+      "playUrl": "http://play.sportsteam368.com/play/steam827422.html",
+      "source": "JRS16"
+    },
+    {
+      "sport": "football",
+      "league": "印度甲",
+      "date": "2026-11-24",
+      "time": "18:30",
+      "startTime": "2026-11-24T18:30:00+08:00",
+      "home": "萨马莱什瓦里SC",
+      "away": "班加罗尔联合会",
+      "playUrl": "http://play.sportsteam368.com/play/steam827425.html",
+      "source": "JRS16"
+    },
+    {
+      "sport": "basketball",
+      "league": "菲MPBL",
+      "date": "2026-11-24",
+      "time": "18:30",
+      "startTime": "2026-11-24T18:30:00+08:00",
+      "home": "阿布拉韦弗斯",
+      "away": "奎松胡斯克尔",
+      "playUrl": "http://play.sportsteam368.com/play/steam827443.html",
+      "source": "JRS16"
+    },
+    {
+      "sport": "basketball",
+      "league": "AUBL",
+      "date": "2026-11-24",
+      "time": "18:30",
+      "startTime": "2026-11-24T18:30:00+08:00",
+      "home": "延世大学",
+      "away": "清华大学",
+      "playUrl": "http://play.sportsteam368.com/play/steam827437.html",
+      "source": "JRS16"
+    },
+    {
+      "sport": "basketball",
+      "league": "WCBA",
+      "date": "2026-11-24",
+      "time": "19:30",
+      "startTime": "2026-11-24T19:30:00+08:00",
+      "home": "山西竹叶青酒女篮",
+      "away": "武汉盛帆黄鹤女篮",
+      "playUrl": "http://play.sportsteam368.com/play/steam827428.html",
+      "source": "JRS16"
+    },
+    {
+      "sport": "basketball",
+      "league": "WCBA",
+      "date": "2026-11-24",
+      "time": "19:30",
+      "startTime": "2026-11-24T19:30:00+08:00",
+      "home": "大连文体旅女篮",
+      "away": "合肥文旅女篮",
+      "playUrl": "http://play.sportsteam368.com/play/steam827426.html",
+      "source": "JRS16"
+    },
+    {
+      "sport": "basketball",
+      "league": "WCBA",
+      "date": "2026-11-24",
+      "time": "19:30",
+      "startTime": "2026-11-24T19:30:00+08:00",
+      "home": "广东奥普特女篮",
+      "away": "河南豫光金铅女篮",
+      "playUrl": "http://play.sportsteam368.com/play/steam827427.html",
+      "source": "JRS16"
+    },
+    {
+      "sport": "football",
+      "league": "亚精英赛",
+      "date": "2026-11-24",
+      "time": "20:15",
+      "startTime": "2026-11-24T20:15:00+08:00",
+      "home": "河内公安",
+      "away": "神户胜利船",
+      "playUrl": "http://play.sportsteam368.com/play/steam827430.html",
+      "source": "JRS16"
+    },
+    {
+      "sport": "football",
+      "league": "亚精英赛",
+      "date": "2026-11-24",
+      "time": "20:15",
+      "startTime": "2026-11-24T20:15:00+08:00",
+      "home": "拉查武里",
+      "away": "柔佛新山",
+      "playUrl": "http://play.sportsteam368.com/play/steam827431.html",
+      "source": "JRS16"
+    },
+    {
+      "sport": "football",
+      "league": "亚精英赛",
+      "date": "2026-11-24",
+      "time": "20:15",
+      "startTime": "2026-11-24T20:15:00+08:00",
+      "home": "上海海港",
+      "away": "武里南联",
+      "playUrl": "http://play.sportsteam368.com/play/steam827429.html",
+      "source": "JRS16"
+    },
+    {
+      "sport": "football",
+      "league": "印度甲",
+      "date": "2026-11-24",
+      "time": "21:00",
+      "startTime": "2026-11-24T21:00:00+08:00",
+      "home": "斯雷尼迪FC",
+      "away": "西钱马里FC",
+      "playUrl": "http://play.sportsteam368.com/play/steam827432.html",
+      "source": "JRS16"
+    },
+    {
+      "sport": "football",
+      "league": "亚冠二级",
+      "date": "2026-11-24",
+      "time": "21:45",
+      "startTime": "2026-11-24T21:45:00+08:00",
+      "home": "东孟加拉",
+      "away": "胡塞因",
+      "playUrl": "http://play.sportsteam368.com/play/steam827433.html",
+      "source": "JRS16"
+    },
+    {
+      "sport": "football",
+      "league": "俄杯",
+      "date": "2026-11-24",
+      "time": "22:00",
+      "startTime": "2026-11-24T22:00:00+08:00",
+      "home": "阿克隆陶里亚蒂",
+      "away": "莫斯科中央陆军",
+      "playUrl": "http://play.sportsteam368.com/play/steam827434.html",
+      "source": "JRS16"
+    },
+    {
+      "sport": "football",
+      "league": "印度超",
+      "date": "2026-11-24",
+      "time": "22:00",
+      "startTime": "2026-11-24T22:00:00+08:00",
+      "home": "东北联",
+      "away": "德里体育",
+      "playUrl": "http://play.sportsteam368.com/play/steam827444.html",
+      "source": "JRS16"
+    },
+    {
+      "sport": "football",
+      "league": "埃及超",
+      "date": "2026-11-24",
+      "time": "23:00",
+      "startTime": "2026-11-24T23:00:00+08:00",
+      "home": "史莫哈",
+      "away": "埃及国家银行",
+      "playUrl": "http://play.sportsteam368.com/play/steam827435.html",
+      "source": "JRS16"
+    },
+    {
+      "sport": "football",
+      "league": "欧青联",
+      "date": "2026-11-24",
+      "time": "23:00",
+      "startTime": "2026-11-24T23:00:00+08:00",
+      "home": "皇家马德里U19",
+      "away": "埃因霍温U19",
+      "playUrl": "http://play.sportsteam368.com/play/steam827436.html",
+      "source": "JRS16"
+    }
+  ]
+}
