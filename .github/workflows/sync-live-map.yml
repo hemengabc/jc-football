@@ -1,1 +1,37 @@
+name: 同步公开直播赛程
 
+on:
+  schedule:
+    - cron: "*/10 * * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: sync-live-map
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: 安装浏览器依赖
+        run: |
+          python -m pip install playwright
+          python -m playwright install --with-deps chromium
+      - name: 读取公开页面并更新映射
+        run: python scripts/sync_live_map.py --output live-map.json
+      - name: 提交有变化的映射
+        run: |
+          if [ -z "$(git status --porcelain -- live-map.json)" ]; then
+            echo "直播映射没有变化"
+            exit 0
+          fi
+          git add live-map.json
+          git -c user.name="github-actions[bot]" -c user.email="41898282+github-actions[bot]@users.noreply.github.com" commit -m "chore: update live match map"
+          git push
