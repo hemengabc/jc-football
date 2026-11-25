@@ -35,11 +35,11 @@ body{font-family:"Noto Sans SC","PingFang SC","Microsoft YaHei",-apple-system,sa
 .lg span{writing-mode:vertical-rl;letter-spacing:3px;font-size:12px;font-weight:700;color:#fff}
 .main{flex:1;min-width:0;padding:12px 12px 11px}
 .match-top{display:flex;align-items:center;gap:10px}
-.no{width:48px;flex:none;text-align:center;padding:5px 2px;background:#f6f9f6;border:1px solid #e7eee8;border-radius:10px}
+.no{width:64px;flex:none;text-align:center;padding:5px 2px;background:#f6f9f6;border:1px solid #e7eee8;border-radius:10px}
 .no .wk{font-size:10.5px;color:var(--sub)}
 .no .num{font-size:19.5px;font-weight:800;color:var(--red);line-height:1.15}
 .no .tm{font-size:10px;color:var(--sub);line-height:1.35;margin-top:2px}
-.meta .dt{color:var(--sub);white-space:nowrap;letter-spacing:.2px}
+.no .dt{font-size:9.5px;color:var(--sub);line-height:1.3;margin-top:2px;white-space:nowrap}
 .teams{flex:1;min-width:0}
 .team-line{display:flex;align-items:baseline;justify-content:space-between;gap:8px;font-size:15px;font-weight:600}
 .team-line .t{flex:1;min-width:0;display:flex;align-items:baseline;justify-content:flex-end}
@@ -108,8 +108,9 @@ body{font-family:"Noto Sans SC","PingFang SC","Microsoft YaHei",-apple-system,sa
   .lg span{font-size:11px;letter-spacing:2px}
   .main{padding:10px 7px 9px}
   .match-top{gap:6px}
-  .no{width:41px;padding:4px 1px;border-radius:8px}
+  .no{width:56px;padding:4px 1px;border-radius:8px}
   .no .num{font-size:18px}
+  .no .dt{font-size:9px}
   .team-line{gap:4px;font-size:13px}
   .team-line .hc{font-size:8px;padding:1px 3px;margin-right:3px}
   .team-line .t.away .hc{margin-left:3px}
@@ -188,7 +189,6 @@ function parseScore(s){
 }
 function flag(h,a){return h>a?'H':h===a?'D':'A';}
 function fmtDate(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
-function cnDate(s){ const p=String(s||'').slice(0,10).split('-'); return p.length===3&&p[0]?`${p[0]}年${Number(p[1])}月${Number(p[2])}日`:''; }
 
 // 在线记录 -> 21 字段行；赔率先继承快照
 function calcRes(full, half, gls){
@@ -278,7 +278,7 @@ function sortRows(a){
 function matchCard(m){
   const [date,num,lg,home,away,gl,half,full,hda,rh,goals,ff,st,oh,od,oa,spHad,spHhad,spCrs,spTtg,spHafu]=m;
   const tm=m[21]||'', minute=m[22]||'';
-  const md=cnDate(m[23]||m[0]);   // 赛事日期：yyyy年m月d日
+  const md=String(m[23]||m[0]||'').slice(0,10);   // 赛事日期 yyyy-mm-dd
   const wk=num.slice(0,2), code=num.slice(2);
   const minuteTxt=(minute && String(minute).indexOf("'")<0)?(minute+"'"):minute;
   let statusHtml='', scoreHtml='<span class="vs">VS</span>';
@@ -309,10 +309,10 @@ function matchCard(m){
     <div class="lg" style="background:${lgColor(lg)}"><span>${esc(lg)}</span></div>
     <div class="main">
       <div class="match-top">
-        <div class="no"><div class="wk">${esc(wk)}</div><div class="num">${esc(code)}</div>${tm?`<div class="tm">${esc(tm)}</div>`:''}</div>
+        <div class="no"><div class="wk">${esc(wk)}</div><div class="num">${esc(code)}</div>${md?`<div class="dt">${esc(md)}</div>`:''}${tm?`<div class="tm">${esc(tm)}</div>`:''}</div>
         <div class="teams">
           <div class="team-line"><span class="t"><i class="hc">主</i><span class="nm">${esc(home)}</span></span>${scoreHtml}<span class="t away"><span class="nm">${esc(away)}</span><i class="hc">客</i></span></div>
-          <div class="meta">${md?`<span class="dt">${esc(md)}</span>`:'<span></span>'}${halfHtml}${statusHtml}</div>
+          <div class="meta">${halfHtml}${statusHtml}</div>
         </div>
       </div>
       <div class="res${glTag?' has-gl':''}">
@@ -641,7 +641,7 @@ function basketCell(label,p){
 }
 
 function basketballCard(m){
-  const num=String(m.num||''), wk=num.slice(0,2), code=num.slice(2), md=cnDate(m.playDate||m.date);
+  const num=String(m.num||''), wk=num.slice(0,2), code=num.slice(2), md=String(m.playDate||m.date||'').slice(0,10);
   const score=parseBasketScore(m.full), hasScore=score&&m.status!=='0';
   const scoreHtml=hasScore
     ?(m.minute?'<span class="sc-wrap"><span class="min">'+esc(m.minute)+'</span><span class="sc">'+esc(m.full)+'</span></span>':'<span class="sc">'+esc(m.full)+'</span>')
@@ -652,10 +652,10 @@ function basketballCard(m){
     <div class="lg" style="background:${lgColor(m.league)}"><span>${esc(m.league)}</span></div>
     <div class="main">
       <div class="match-top">
-        <div class="no"><div class="wk">${esc(wk)}</div><div class="num">${esc(code)}</div>${m.time?`<div class="tm">${esc(m.time)}</div>`:''}</div>
+        <div class="no"><div class="wk">${esc(wk)}</div><div class="num">${esc(code)}</div>${md?`<div class="dt">${esc(md)}</div>`:''}${m.time?`<div class="tm">${esc(m.time)}</div>`:''}</div>
         <div class="teams">
           <div class="team-line"><span class="t"><i class="hc">客</i><span class="nm">${esc(m.away)}</span></span>${scoreHtml}<span class="t away"><span class="nm">${esc(m.home)}</span><i class="hc">主</i></span></div>
-          <div class="meta">${md?`<span class="dt">${esc(md)}</span>`:'<span></span>'}<span></span>${basketStatusHtml(m)}</div>
+          <div class="meta">${basketStatusHtml(m)}</div>
         </div>
       </div>
       <div class="res basket-res${m.hdc.line||m.hilo.line?' has-gl':''}">
