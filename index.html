@@ -413,7 +413,9 @@ function parseBasketScore(s){
   if(!s||s==='取消'||s==='无效场次'||s==='--') return null;
   const parts=String(s).trim().split(/[-:：]/);
   if(parts.length!==2) return null;
-  const away=Number(parts[0]), home=Number(parts[1]);
+  const pa=String(parts[0]).trim(), ph=String(parts[1]).trim();
+  if(!pa||!ph||!/^\d+$/.test(pa)||!/^\d+$/.test(ph)) return null;   // 过滤 "-"、"88-" 之类的占位值
+  const away=Number(pa), home=Number(ph);
   if(!Number.isFinite(away)||!Number.isFinite(home)||away<0||home<0) return null;
   return [away,home];
 }
@@ -469,8 +471,9 @@ async function fetchBasketLive(){
       const time=String(m.matchTime||'');
       return {
         t:(time.match(/\d{2}:\d{2}/)||[''])[0],st:String(m.matchStatus||''),
-        minute:m.matchMinute||m.matchStatusName||'',matchId:m.matchId||'',
-        full:m.finalScore||m.sectionsNo999||'',half:m.sectionsNo1||'',
+        minute:String(m.matchMinute||''),   // 不取 matchStatusName，避免把“直播中”当节次标在比分上方
+        matchId:m.matchId||'',
+        full:bkScoreVal(m.finalScore)||bkScoreVal(m.sectionsNo999),half:bkScoreVal(m.sectionsNo1),
         d:m.matchDate||m.businessDate||'',home:m.homeTeamAbbName||m.homeTeam||'',
         away:m.awayTeamAbbName||m.awayTeam||''
       };
@@ -539,15 +542,19 @@ function findBasketLive(m,liveList){
   })||null;
 }
 
+function bkScoreVal(s){ return parseBasketScore(s)?String(s).trim().replace('：',':').replace('-',':'):''; }
+
 function applyBasketLive(m,lv){
   if(!lv) return m;
-  if((!m.full||m.full==='--')&&lv.full) m.full=lv.full;
-  if((!m.half||m.half==='--')&&lv.half) m.half=lv.half;
+  const lvScore=bkScoreVal(lv.full), curScore=bkScoreVal(m.full);
+  // 直播中/刚结束的场次：一律采用直播接口的实时比分，避免被赛果接口的占位值挡住
+  if(lvScore&&(lv.st==='5'||lv.st==='6'||!curScore)) m.full=lvScore;
+  if((!m.half||m.half==='--')&&bkScoreVal(lv.half)) m.half=bkScoreVal(lv.half);
   if(lv.t) m.time=lv.t;
   if(!m.matchId&&lv.matchId) m.matchId=lv.matchId;
   if(!['0','2','3'].includes(String(m.status))){
     if(lv.st==='5') m.status='L';
-    else if(lv.st==='6') m.status='E';
+    else if(lv.st==='6'||lv.st==='11') m.status='E';
     else if(lv.st==='4') m.status='1';
   }
   m.minute=(m.status==='L'||m.status==='E')?(lv.minute||''):'';
@@ -563,8 +570,8 @@ function basketResultRow(rec,base,lv){
   m.away=rec.awayTeam||rec.awayTeamAbbName||m.away||'';
   m.playDate=rec.matchDate||m.playDate||m.date;
   m.matchId=rec.matchId||m.matchId||(lv&&lv.matchId)||'';
-  m.full=rec.finalScore||rec.sectionsNo999||(lv&&lv.full)||m.full||'--';
-  m.half=rec.sectionsNo1||(lv&&lv.half)||m.half||'--';
+  m.full=bkScoreVal(rec.finalScore)||bkScoreVal(rec.sectionsNo999)||bkScoreVal(lv&&lv.full)||bkScoreVal(m.full)||'--';
+  m.half=bkScoreVal(rec.sectionsNo1)||bkScoreVal(lv&&lv.half)||bkScoreVal(m.half)||'--';
   m.time=(lv&&lv.t)||m.time||'';
   m.status=String((rec.status??rec.matchResultStatus??m.status)??'');
   if(m.status==='1'&&!parseBasketScore(m.full)&&m.time&&Date.now()>new Date(m.playDate+'T'+m.time+':00+08:00').getTime()) m.status='L';
@@ -616,7 +623,6 @@ function basketballCard(m){
   const scoreHtml=hasScore
     ?(m.minute?'<span class="sc-wrap"><span class="min">'+esc(m.minute)+'</span><span class="sc">'+esc(m.full)+'</span></span>':'<span class="sc">'+esc(m.full)+'</span>')
     :'<span class="vs">VS</span>';
-  const half=parseBasketScore(m.half)?m.half:'--';
   const lineTag=p=>p.line?`<span class="glv">（${esc(p.line)}）</span>`:'';
   const total=hasScore?`总分 ${score[0]+score[1]}`:'';
   return `<div class="item">
@@ -626,11 +632,11 @@ function basketballCard(m){
         <div class="no"><div class="wk">${esc(wk)}</div><div class="num">${esc(code)}</div>${m.time?`<div class="tm">${esc(m.time)}</div>`:''}</div>
         <div class="teams">
           <div class="team-line"><span class="t"><i class="hc">客</i><span class="nm">${esc(m.away)}</span></span>${scoreHtml}<span class="t away"><span class="nm">${esc(m.home)}</span><i class="hc">主</i></span></div>
-          <div class="meta"><span class="half">阶段 ${esc(half)}</span>${basketStatusHtml(m)}</div>
+          <div class="meta">${basketStatusHtml(m)}</div>
         </div>
       </div>
       <div class="res basket-res${m.hdc.line||m.hilo.line?' has-gl':''}">
-        <div class="cell"><div class="lab">${m.status==='L'?'实时比分':'终场比分'}</div><div class="val ${hasScore?'v-sc':'v-na'}">${hasScore?esc(m.full):'-'}</div><div class="sp">${total}</div></div>
+        <div class="cell"><div class="lab">${m.status==='L'?'实时比分':(m.status==='1'?'比分':'终场比分')}</div><div class="val ${hasScore?'v-sc':'v-na'}">${hasScore?esc(m.full):'-'}</div><div class="sp">${total}</div></div>
         ${basketCell('胜负',m.mnl)}
         ${basketCell('<span class="ln">让分胜负</span>'+lineTag(m.hdc),m.hdc)}
         ${basketCell('<span class="ln">大小分</span>'+lineTag(m.hilo),m.hilo)}
