@@ -355,7 +355,7 @@ function matchCard(m){
       <div class="match-top">
         <div class="no"><div class="wk">${esc(wk)}</div><div class="num">${esc(code)}</div>${md?`<div class="dt">${esc(md)}</div>`:''}${tm?`<div class="tm">${esc(tm)}</div>`:''}</div>
         <div class="teams">
-          <div class="team-line"><span class="t"><i class="hc">主</i>${teamLogo(home)}<span class="nm">${esc(home)}</span></span>${scoreHtml}<span class="t away">${teamLogo(away)}<span class="nm">${esc(away)}</span><i class="hc">客</i></span></div>
+          <div class="team-line"><span class="t"><i class="hc">主</i>${teamLogo(home)}<span class="nm">${esc(home)}</span></span>${scoreHtml}<span class="t away"><span class="nm">${esc(away)}</span>${teamLogo(away)}<i class="hc">客</i></span></div>
           <div class="meta">${halfHtml}${statusHtml}</div>
         </div>
       </div>
@@ -698,7 +698,7 @@ function basketballCard(m){
       <div class="match-top">
         <div class="no"><div class="wk">${esc(wk)}</div><div class="num">${esc(code)}</div>${md?`<div class="dt">${esc(md)}</div>`:''}${m.time?`<div class="tm">${esc(m.time)}</div>`:''}</div>
         <div class="teams">
-          <div class="team-line"><span class="t"><i class="hc">客</i>${teamLogoBasket(m.away)}<span class="nm">${esc(m.away)}</span></span>${scoreHtml}<span class="t away">${teamLogoBasket(m.home)}<span class="nm">${esc(m.home)}</span><i class="hc">主</i></span></div>
+          <div class="team-line"><span class="t"><i class="hc">客</i>${teamLogoBasket(m.away)}<span class="nm">${esc(m.away)}</span></span>${scoreHtml}<span class="t away"><span class="nm">${esc(m.home)}</span>${teamLogoBasket(m.home)}<i class="hc">主</i></span></div>
           <div class="meta">${basketStatusHtml(m)}</div>
         </div>
       </div>
