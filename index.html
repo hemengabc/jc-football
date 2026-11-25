@@ -39,6 +39,7 @@ body{font-family:"Noto Sans SC","PingFang SC","Microsoft YaHei",-apple-system,sa
 .no .wk{font-size:10.5px;color:var(--sub)}
 .no .num{font-size:19.5px;font-weight:800;color:var(--red);line-height:1.15}
 .no .tm{font-size:10px;color:var(--sub);line-height:1.35;margin-top:2px}
+.no .dt{font-size:9.5px;color:var(--sub);line-height:1.2;margin-top:2px;opacity:.85}
 .teams{flex:1;min-width:0}
 .team-line{display:flex;align-items:baseline;justify-content:space-between;gap:8px;font-size:15px;font-weight:600}
 .team-line .t{flex:1;min-width:0;display:flex;align-items:baseline;justify-content:flex-end}
@@ -276,6 +277,7 @@ function sortRows(a){
 function matchCard(m){
   const [date,num,lg,home,away,gl,half,full,hda,rh,goals,ff,st,oh,od,oa,spHad,spHhad,spCrs,spTtg,spHafu]=m;
   const tm=m[21]||'', minute=m[22]||'';
+  const md=(m[23]||m[0]||'').slice(5);   // 赛事日期 MM-DD
   const wk=num.slice(0,2), code=num.slice(2);
   const minuteTxt=(minute && String(minute).indexOf("'")<0)?(minute+"'"):minute;
   let statusHtml='', scoreHtml='<span class="vs">VS</span>';
@@ -306,7 +308,7 @@ function matchCard(m){
     <div class="lg" style="background:${lgColor(lg)}"><span>${esc(lg)}</span></div>
     <div class="main">
       <div class="match-top">
-        <div class="no"><div class="wk">${esc(wk)}</div><div class="num">${esc(code)}</div>${tm?`<div class="tm">${esc(tm)}</div>`:''}</div>
+        <div class="no"><div class="wk">${esc(wk)}</div><div class="num">${esc(code)}</div>${md?`<div class="dt">${esc(md)}</div>`:''}${tm?`<div class="tm">${esc(tm)}</div>`:''}</div>
         <div class="teams">
           <div class="team-line"><span class="t"><i class="hc">主</i><span class="nm">${esc(home)}</span></span>${scoreHtml}<span class="t away"><span class="nm">${esc(away)}</span><i class="hc">客</i></span></div>
           <div class="meta">${halfHtml}${statusHtml}</div>
@@ -638,7 +640,7 @@ function basketCell(label,p){
 }
 
 function basketballCard(m){
-  const num=String(m.num||''), wk=num.slice(0,2), code=num.slice(2);
+  const num=String(m.num||''), wk=num.slice(0,2), code=num.slice(2), md=String(m.playDate||m.date||'').slice(5);
   const score=parseBasketScore(m.full), hasScore=score&&m.status!=='0';
   const scoreHtml=hasScore
     ?(m.minute?'<span class="sc-wrap"><span class="min">'+esc(m.minute)+'</span><span class="sc">'+esc(m.full)+'</span></span>':'<span class="sc">'+esc(m.full)+'</span>')
@@ -649,7 +651,7 @@ function basketballCard(m){
     <div class="lg" style="background:${lgColor(m.league)}"><span>${esc(m.league)}</span></div>
     <div class="main">
       <div class="match-top">
-        <div class="no"><div class="wk">${esc(wk)}</div><div class="num">${esc(code)}</div>${m.time?`<div class="tm">${esc(m.time)}</div>`:''}</div>
+        <div class="no"><div class="wk">${esc(wk)}</div><div class="num">${esc(code)}</div>${md?`<div class="dt">${esc(md)}</div>`:''}${m.time?`<div class="tm">${esc(m.time)}</div>`:''}</div>
         <div class="teams">
           <div class="team-line"><span class="t"><i class="hc">客</i><span class="nm">${esc(m.away)}</span></span>${scoreHtml}<span class="t away"><span class="nm">${esc(m.home)}</span><i class="hc">主</i></span></div>
           <div class="meta">${basketStatusHtml(m)}</div>
