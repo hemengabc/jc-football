@@ -251,7 +251,27 @@ let currentSport='football';
 const refreshing={football:false,basketball:false};
 const listEl=document.getElementById('list');
 
-function sortRows(a){a.sort((x,y)=> x[0]===y[0]?(x[1]<y[1]?1:-1):(x[0]<y[0]?1:-1));}
+// 排序：先按真实开赛时间倒序（最新在前），同一时间再按场次号倒序
+// 注意不能用“周二/周三”这类中文串比较，跨日场次（周二凌晨 vs 周三凌晨）会错位
+function rowCode(m){ const c=String(m[1]||'').match(/(\d+)$/); return c?Number(c[1]):0; }
+const WK_ORD={'周日':0,'周一':1,'周二':2,'周三':3,'周四':4,'周五':5,'周六':6};
+function rowWk(m){ return WK_ORD[String(m[1]||'').slice(0,2)] ?? 0; }
+function rowTs(m){
+  const d=m[23]||m[0]||'';
+  const t=/^\d{1,2}:\d{2}$/.test(m[21]||'')?m[21]:'00:00';
+  if(!d) return 0;
+  const ts=new Date(d+'T'+t+':00+08:00').getTime();
+  return isNaN(ts)?0:ts;
+}
+function sortRows(a){
+  a.sort((x,y)=>{
+    const tx=rowTs(x), ty=rowTs(y);
+    if(tx!==ty) return ty-tx;          // 真实开赛时间新的在前
+    const wx=rowWk(x), wy=rowWk(y);
+    if(wx!==wy) return wy-wx;          // 同一时间戳时按比赛日先后（周二晚于周一）
+    return rowCode(y)-rowCode(x);      // 再按场次号倒序
+  });
+}
 
 function matchCard(m){
   const [date,num,lg,home,away,gl,half,full,hda,rh,goals,ff,st,oh,od,oa,spHad,spHhad,spCrs,spTtg,spHafu]=m;
